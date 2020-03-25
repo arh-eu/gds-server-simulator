@@ -13,12 +13,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
-        <dependency>
-            <groupId>org.msgpack</groupId>
-            <artifactId>msgpack-core</artifactId>
-            <version>0.8.15</version>
-        </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
@@ -26,6 +28,12 @@
             <version>4.1.45.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.arh-eu</groupId>
+            <artifactId>gds-java-messages</artifactId>
+            <version>master-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
-    
+
 </project>

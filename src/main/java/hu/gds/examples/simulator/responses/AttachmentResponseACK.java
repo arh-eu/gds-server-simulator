@@ -6,61 +6,42 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.gds.examples.simulator.GDSSimulator;
-import hu.gds.examples.simulator.MessageHeader;
-import hu.gds.examples.simulator.requests.AttachmentResponse;
-import org.msgpack.core.MessageBufferPacker;
+import hu.arh.gds.message.data.MessageData7AttachmentResponseAck;
+import hu.arh.gds.message.data.impl.AckStatus;
+import hu.arh.gds.message.data.impl.AttachmentResponseAckResultHolderImpl;
+import hu.arh.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arh.gds.message.util.MessageManager;
+import hu.arh.gds.message.util.ValidationException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-public class AttachmentResponseACK extends ACKBase {
-    public AttachmentResponseACK(MessageHeader header, AttachmentResponse response) {
-    }
+import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
-    @Override
-    public void pack(MessageBufferPacker packer) throws IOException {
-        packer.packArrayHeader(3);
-        if (GDSSimulator.user_logged_in) {
-            packer.packInt(200);
-
-            packer.packArrayHeader(2);
-            packer.packMapHeader(8);
-
-            packer.packString("requestids");
-            packer.packArrayHeader(3);
-            packer.packString("request_id_1");
-            packer.packString("request_id_2");
-            packer.packString("request_id_3");
-
-            packer.packString("ownertable");
-            packer.packString("@owner_table");
-
-            packer.packString("attachmentid");
-            packer.packString(System.currentTimeMillis() + "+id");
-
-            packer.packString("ownerids");
-            packer.packArrayHeader(1);
-            packer.packString("owner2");
-
-            packer.packString("meta");
-            packer.packString("image/bmp");
-
-            packer.packString("ttl");
-            packer.packLong(60 * 60 * 2000);
-
-            packer.packString("to_valid");
-            packer.packLong(60 * 60 * 2000);
-
-            packer.packString("attachment");
-
-            packPixel(packer);
-
-            packer.packNil();
-
-            //global_exception
-            packer.packNil();
+public class AttachmentResponseACK {
+    public static MessageData7AttachmentResponseAck getData() throws IOException, ValidationException {
+        MessageData7AttachmentResponseAck responseData;
+        if(user_logged_in) {
+            responseData = MessageManager.createMessageData7AttachmentResponseAck(
+                    AckStatus.OK,
+                    new AttachmentResponseAckResultHolderImpl(
+                            AckStatus.OK,
+                            new AttachmentResultHolderImpl(
+                                    new ArrayList<String>(){{add("request_id_1");add("request_id_2");}},
+                                    "sample_owner_table",
+                                    "attachemnt_id_1",
+                                    new ArrayList<String>(){{add("owner1");}},
+                                    "image/bmp",
+                                    60 * 60 * 1000L,
+                                    60 * 60 * 1000L,
+                                    AttachmentRequestACK.getPixel())),
+                    null);
         } else {
-            notLoggedIn(packer);
+            responseData = MessageManager.createMessageData7AttachmentResponseAck(
+                    AckStatus.UNAUTHORIZED,
+                    null,
+                    "This user does not exist or has not sent Connection request yet!");
         }
+        return responseData;
     }
 }

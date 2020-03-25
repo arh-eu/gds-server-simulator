@@ -6,74 +6,76 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.gds.examples.simulator.GDSSimulator;
-import hu.gds.examples.simulator.MessageHeader;
-import hu.gds.examples.simulator.requests.NextQuery;
-import hu.gds.examples.simulator.requests.Query;
-import org.msgpack.core.MessageBufferPacker;
+import hu.arh.gds.message.data.ConsistencyType;
+import hu.arh.gds.message.data.FieldHolder;
+import hu.arh.gds.message.data.FieldValueType;
+import hu.arh.gds.message.data.MessageData11QueryRequestAck;
+import hu.arh.gds.message.data.impl.*;
+import hu.arh.gds.message.util.MessageManager;
+import hu.arh.gds.message.util.ValidationException;
+import org.msgpack.value.Value;
+import org.msgpack.value.impl.ImmutableStringValueImpl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-public class QueryACK extends ACKBase {
+import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
-    protected final boolean firstQuery;
+public class QueryACK {
 
-    public QueryACK(MessageHeader header, Query query) {
-        firstQuery = true;
-    }
-
-    public QueryACK(MessageHeader header, NextQuery query) {
-        firstQuery = false;
-    }
-
-    @Override
-    public void pack(MessageBufferPacker packer) throws IOException {
-        packer.packArrayHeader(3);
-        if (GDSSimulator.user_logged_in) {
-            packer.packInt(globalStatus); //globalStatus OK
-
-            packer.packArrayHeader(6); //object
-            final int resultSize = 100;
-
-            packer.packInt(resultSize);
-            packer.packInt(10);
-            packer.packBoolean(firstQuery);
-            packer.packArrayHeader(9);
-            //QueryContextDescriptor
-            packer.packString("2b22a5a84966df20a3a44793476a55c45bc06418d964bc1d9009a6e859a1bf4e");
-            packer.packString("SELECT * FROM table");
-            packer.packLong(firstQuery ? 0L : 100L);
-            packer.packLong(System.currentTimeMillis());
-            packer.packString("NONE");
-            packer.packString("BUCKET_ID");
-            packer.packArrayHeader(2);
-            packer.packString("GDS_CLUSTER");
-            packer.packString("GDS_NODE");
-            packer.packArrayHeader(0);
-            packer.packArrayHeader(0);
-
-            //3 fields
-            packer.packArrayHeader(3);
+    public static MessageData11QueryRequestAck getData() throws IOException, ValidationException {
+        MessageData11QueryRequestAck responseData;
+        if (user_logged_in) {
+            Random r = new Random();
+            List<FieldHolder> fieldHolders = new ArrayList<>();
             for (int i = 1; i <= 3; ++i) {
-                packer.packArrayHeader(3);
-                packer.packString("field_name_" + i);
-                packer.packString("field_type_" + i);
-                packer.packString("mime_type_" + i);
+                fieldHolders.add(
+                        new FieldHolderImpl(
+                                "field_name_" + i,
+                                FieldValueType.valueOf(r.nextInt(15)),
+                                "mime_type_" + i));
             }
 
-            //100 rows
-            packer.packArrayHeader(resultSize);
-            int start = firstQuery ? 1 : resultSize + 1;
-
-            for (int i = start; i <= start + resultSize - 1; ++i) {
-                packer.packArrayHeader(3);
+            List<List<Value>> values = new ArrayList<>();
+            for (int i = 1; i <= 100; ++i) {
+                List<Value> valuesTemp = new ArrayList<>();
                 for (int j = 1; j <= 3; ++j) {
-                    packer.packString("row_" + i + "_value_" + j);
+                    valuesTemp.add(new ImmutableStringValueImpl("row_" + i + "_value_" + j));
                 }
+                values.add(valuesTemp);
             }
-            packer.packNil(); //global_exception null
+
+            responseData = MessageManager.createMessageData11QueryRequestAck(
+                    AckStatus.OK,
+                    new QueryResponseHolderImpl(
+                            100L,
+                            10L,
+                            false,
+                            new QueryContextHolderImpl(
+                                    "2b22a5a84966df20a3a44793476a55c45bc06418d964bc1d9009a6e859a1bf4e",
+                                    "SELECT * FROM table",
+                                    0L,
+                                    System.currentTimeMillis(),
+                                    ConsistencyType.NONE,
+                                    "BUCKET_ID",
+                                    new GDSHolderImpl(
+                                            "GDS_CLUSTER",
+                                            "GDS_NODE"
+                                    ),
+                                    new ArrayList<>(),
+                                    new ArrayList<>()
+                            ),
+                            fieldHolders,
+                            values),
+                    null);
         } else {
-            notLoggedIn(packer);
+            responseData = MessageManager.createMessageData11QueryRequestAck(
+                    AckStatus.UNAUTHORIZED,
+                    null,
+                    "This user does not exist or has not sent Connection request yet!");
         }
+        return responseData;
     }
 }

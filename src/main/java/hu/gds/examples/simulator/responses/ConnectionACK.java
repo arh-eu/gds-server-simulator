@@ -6,55 +6,44 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.gds.examples.simulator.GDSSimulator;
-import hu.gds.examples.simulator.MessageHeader;
-import hu.gds.examples.simulator.requests.Connection;
-import org.msgpack.core.MessageBufferPacker;
+import hu.arh.gds.message.data.MessageData0Connection;
+import hu.arh.gds.message.data.MessageData1ConnectionAck;
+import hu.arh.gds.message.data.impl.AckStatus;
+import hu.arh.gds.message.header.MessageHeaderBase;
+import hu.arh.gds.message.util.MessageManager;
+import hu.arh.gds.message.util.ValidationException;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ConnectionACK extends ACKBase {
+import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
+
+public class ConnectionACK {
 
     private final static String allowed_user = "user";
-    private final Connection data;
-    private final Map<Integer, String> errors;
 
-
-    public ConnectionACK(MessageHeader header, Connection request) {
-        if (!Objects.equals(allowed_user, header.getUsername())) {
-            globalStatus = 401;
-            globalException = "This user is not allowed!";
-            data = null;
+    public static MessageData1ConnectionAck getData(MessageHeaderBase requestHeader, MessageData0Connection requestData) throws IOException, ValidationException {
+        MessageData1ConnectionAck responseData;
+        if (Objects.equals(allowed_user, requestHeader.getUserName())) {
+            responseData = MessageManager.createMessageData1ConnectionAck(
+                    MessageManager.createMessageData0Connection(
+                            false,
+                            requestData.getProtocolVersionNumber(),
+                            false,
+                            null), null, AckStatus.OK, null);
+            user_logged_in = true;
+        } else {
+            Map<Integer, String> errors;
             errors = new HashMap<>();
-            errors.put(0, "There is no user named '" + header.getUsername() + "'!");
-        } else {
-            data = request;
-            errors = null;
-            GDSSimulator.user_logged_in = true;
+            errors.put(0, "There is no user named '" + requestHeader.getUserName() + "'!");
+            responseData = MessageManager.createMessageData1ConnectionAck(
+                    null,
+                    errors,
+                    AckStatus.UNAUTHORIZED,
+                    "This user is not allowed!");
         }
-    }
-
-    @Override
-    public void pack(MessageBufferPacker packer) throws IOException {
-        packer.packArrayHeader(3);
-
-        packer.packInt(globalStatus);
-
-        if (data == null) {
-            packer.packMapHeader(1);
-            Map.Entry<Integer, String> entry = errors.entrySet().iterator().next();
-            packer.packInt(entry.getKey());
-            packer.packString(entry.getValue());
-        } else {
-            data.pack(packer);
-        }
-        if(globalException == null) {
-            packer.packNil();
-        } else {
-            packer.packNil();
-        }
+        return responseData;
     }
 }

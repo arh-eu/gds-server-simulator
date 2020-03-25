@@ -6,61 +6,66 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.gds.examples.simulator.GDSSimulator;
-import hu.gds.examples.simulator.MessageHeader;
-import hu.gds.examples.simulator.requests.AttachmentRequest;
-import org.msgpack.core.MessageBufferPacker;
+import hu.arh.gds.message.data.MessageData5AttachmentRequestAck;
+import hu.arh.gds.message.data.impl.AckStatus;
+import hu.arh.gds.message.data.impl.AttachmentRequestAckDataHolderImpl;
+import hu.arh.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arh.gds.message.util.MessageManager;
+import hu.arh.gds.message.util.ValidationException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
-public class AttachmentRequestACK extends ACKBase {
-    public AttachmentRequestACK(MessageHeader header, AttachmentRequest request) {
+import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
+
+public class AttachmentRequestACK {
+    public static MessageData5AttachmentRequestAck getData() throws IOException, ValidationException {
+        MessageData5AttachmentRequestAck responseData;
+        if (user_logged_in) {
+            responseData = MessageManager.createMessageData5AttachmentRequestAck(
+                    AckStatus.OK,
+                    new AttachmentRequestAckDataHolderImpl(
+                            AckStatus.OK,
+                            new AttachmentResultHolderImpl(
+                                    new ArrayList<String>() {{
+                                        add("request_id_1");
+                                        add("request_id_2");
+                                    }},
+                                    "sample_owner_table",
+                                    "attachemnt_id_1",
+                                    new ArrayList<String>() {{
+                                        add("owner1");
+                                    }},
+                                    "image/bmp",
+                                    60 * 60 * 1000L,
+                                    60 * 60 * 1000L,
+                                    getPixel()),
+                            0L),
+                    null);
+        } else {
+            responseData = MessageManager.createMessageData5AttachmentRequestAck(
+                    AckStatus.UNAUTHORIZED,
+                    null,
+                    "This user does not exist or has not sent Connection request yet!");
+        }
+        return responseData;
     }
 
-    @Override
-    public void pack(MessageBufferPacker packer) throws IOException {
-        packer.packArrayHeader(3);
-        if (GDSSimulator.user_logged_in) {
-            packer.packInt(200);
-
-            packer.packArrayHeader(3);
-
-            packer.packInt(201);
-            packer.packMapHeader(8);
-
-            packer.packString("requestids");
-            packer.packArrayHeader(2);
-            packer.packString("request_id_1");
-            packer.packString("request_id_2");
-
-            packer.packString("ownertable");
-            packer.packString("owner_table");
-
-            packer.packString("attachmentid");
-            packer.packString(System.currentTimeMillis() + "-id");
-
-            packer.packString("ownerids");
-            packer.packArrayHeader(1);
-            packer.packString("owner1");
-
-            packer.packString("meta");
-            packer.packString("image/bmp");
-
-            packer.packString("ttl");
-            packer.packLong(60 * 60 * 1000);
-
-            packer.packString("to_valid");
-            packer.packLong(60 * 60 * 1000);
-
-            packer.packString("attachment");
-
-            packPixel(packer);
-
-            packer.packLong(0);
-
-            packer.packNil();
-        } else {
-            notLoggedIn(packer);
-        }
+    public static byte[] getPixel() throws IOException {
+        //Binary representation of a white pixel in BMP format
+        int[] binaryData = {
+                0x42, 0x4D, 0x3A, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x36, 0x0, 0x0, 0x0, 0x28, 0x0,
+                0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1, 0x0,
+                0x0, 0x0, 0x1, 0x0, 0x18, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x4, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF,
+                0xFF, 0x0
+        };
+        ByteBuffer byteBuffer = ByteBuffer.allocate(binaryData.length * 4);
+        byteBuffer.asIntBuffer().put(binaryData);
+        return byteBuffer.array();
     }
 }

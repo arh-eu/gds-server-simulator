@@ -6,11 +6,13 @@
 
 package hu.gds.examples.simulator;
 
-import hu.gds.examples.simulator.requests.*;
+import hu.arh.gds.message.data.MessageData;
+import hu.arh.gds.message.header.MessageHeaderBase;
+import hu.arh.gds.message.util.MessageManager;
+import hu.arh.gds.message.util.ReadException;
+import hu.arh.gds.message.util.ValidationException;
+import hu.arh.gds.message.util.WriteException;
 import hu.gds.examples.simulator.responses.*;
-import org.msgpack.core.MessageBufferPacker;
-import org.msgpack.core.MessagePack;
-import org.msgpack.core.MessageUnpacker;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -19,83 +21,64 @@ public class GDSSimulator {
     public static boolean user_logged_in = false;
     private static final Logger LOGGER = Logger.getLogger("GDSSimulator");
 
-    public byte[] handleRequest(byte[] request) throws IOException {
-        MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(request);
+    public byte[] handleRequest(byte[] request) throws IOException, ValidationException, WriteException {
 
-        int arraySize = unpacker.unpackArrayHeader();
-        if (arraySize != 11) {
-            LOGGER.warning("Invalid header format");
-            throw new IllegalStateException("The Header of the Message should be an array of size 11, found "
-                    + arraySize + " elements instead!");
+        MessageHeaderBase requestHeader;
+        try {
+            requestHeader = MessageManager.getMessageHeaderFromBinaryMessage(request).getTypeHelper().asBaseMessageHeader();
+        } catch (ReadException | ValidationException e) {
+            LOGGER.warning("An error occured while processing the message header");
+            throw new IllegalStateException(e.getMessage());
         }
-        MessageHeader header = MessageHeader.unpack(unpacker);
 
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        packer.packArrayHeader(11);
-        String username = header.getUsername();
+        MessageData requestData;
+        try {
+            requestData = MessageManager.getMessageData(request);
+        } catch (ReadException | ValidationException e) {
+            LOGGER.warning("An error occured while processing the message data");
+            throw new IllegalStateException(e.getMessage());
+        }
 
-        DataType headerDataType = header.getDataType();
+        LOGGER.info("GDS has received a message of type '" + requestData.getTypeHelper().getMessageDataType().name() + "'..");
 
-
-        LOGGER.info("GDS has received a message of type '" + headerDataType.name() + "'..");
-        switch (headerDataType) {
-            case CONNECTION:
-                MessageHeader.create(username, DataType.CONNECTION_ACK, header.getMessageID()).pack(packer);
-                new ConnectionACK(header, new Connection(unpacker)).pack(packer);
+        byte[] response;
+        switch (requestData.getTypeHelper().getMessageDataType()) {
+            case CONNECTION_0:
+                response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.getTypeHelper().asConnectionMessageData0());
                 LOGGER.info("Sending back the CONNECTION_ACK..");
                 break;
-            case EVENT:
-                MessageHeader.create(username, DataType.EVENT_ACK, header.getMessageID()).pack(packer);
-                new EventACK(header, new Event(unpacker)).pack(packer);
+            case EVENT_2:
+                response = ResponseGenerator.getEventAckMessage(requestHeader);
                 LOGGER.info("Sending back the EVENT_ACK..");
                 break;
-            case ATTACHMENT_REQUEST:
-                MessageHeader.create(username, DataType.ATTACHMENT_REQUEST_ACK, header.getMessageID()).pack(packer);
-                new AttachmentRequestACK(header, new AttachmentRequest(unpacker)).pack(packer);
+            case ATTACHMENT_REQUEST_4:
+                response = ResponseGenerator.getAttachmentRequestAckMessage(requestHeader);
                 LOGGER.info("Sending back the ATTACHMENT_REQUEST_ACK..");
                 break;
-            case ATTACHMENT_RESPONSE:
-                MessageHeader.create(username, DataType.ATTACHMENT_RESPONSE_ACK, header.getMessageID()).pack(packer);
-                new AttachmentResponseACK(header, new AttachmentResponse(unpacker)).pack(packer);
+            case ATTACHMENT_RESPONSE_6:
+                response = ResponseGenerator.getAttachmentResponseAckMessage(requestHeader);
                 LOGGER.info("Sending back the ATTACHMENT_RESPONSE_ACK..");
                 break;
-            case EVENT_DOCUMENT:
-                MessageHeader.create(username, DataType.EVENT_DOCUMENT_ACK, header.getMessageID()).pack(packer);
-                new EventDocumentACK((header), new EventDocument((unpacker))).pack(packer);
+            case EVENT_DOCUMENT_8:
+                response = ResponseGenerator.getEventDocumentAckMessage(requestHeader);
                 LOGGER.info("Sending back the EVENT_DOCUMENT_ACK..");
                 break;
-            case QUERY_REQUEST:
-                MessageHeader.create(username, DataType.QUERY_REQUEST_ACK, header.getMessageID()).pack(packer);
-                new QueryACK(header, new Query(unpacker)).pack(packer);
+            case QUERY_REQUEST_10:
+                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader);
                 LOGGER.info("Sending back the QUERY_REQUEST_ACK..");
                 break;
-            case NEXT_QUERY_PAGE_REQUEST:
-                MessageHeader.create(username, DataType.QUERY_REQUEST_ACK, header.getMessageID()).pack(packer);
-                new QueryACK(header, new NextQuery(unpacker)).pack(packer);
+            case NEXT_QUERY_PAGE_12:
+                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader);
                 LOGGER.info("Sending back the QUERY_REQUEST_ACK..");
                 break;
-
-
-            case CONNECTION_ACK:
-            case EVENT_ACK:
-            case EVENT_DOCUMENT_ACK:
-            case QUERY_REQUEST_ACK:
-                //error
-                MessageHeader.create(username, headerDataType, header.getMessageID()).pack(packer);
-                new InvalidACK(headerDataType).pack(packer);
-                break;
-
-            default:
-                //should never reach
-                break;
-
-            case ATTACHMENT_REQUEST_ACK:
-            case ATTACHMENT_RESPONSE_ACK:
+            case ATTACHMENT_REQUEST_ACK_5:
+            case ATTACHMENT_RESPONSE_ACK_7:
                 return null;
+            default:
+                response = ResponseGenerator.getInvalidAckMessage(requestHeader, requestData.getTypeHelper().getMessageDataType());
+                break;
         }
-
-
         LOGGER.info("GDS Response successfully sent!");
-        return packer.toByteArray();
+        return response;
     }
 }
