@@ -20,7 +20,8 @@ import java.util.ArrayList;
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class AttachmentRequestACK {
-    public static MessageData5AttachmentRequestAck getData() throws IOException, ValidationException {
+
+    public static MessageData5AttachmentRequestAck getData(boolean withAttachment) throws IOException, ValidationException {
         MessageData5AttachmentRequestAck responseData;
         if (user_logged_in) {
             responseData = MessageManager.createMessageData5AttachmentRequestAck(
@@ -40,7 +41,7 @@ public class AttachmentRequestACK {
                                     "image/bmp",
                                     60 * 60 * 1000L,
                                     60 * 60 * 1000L,
-                                    getPixel()),
+                                    withAttachment ? getPixel() : null),
                             0L),
                     null);
         } else {

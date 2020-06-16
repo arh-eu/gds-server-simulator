@@ -23,10 +23,13 @@
 package hu.gds.examples.simulator.websocket;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
@@ -40,6 +43,8 @@ public final class WebSocketServer implements Runnable {
 
     private static final boolean SSL = System.getProperty("ssl") != null;
     private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8080"));
+
+    private Channel ch;
 
     @Override
     public void run() {
@@ -62,7 +67,7 @@ public final class WebSocketServer implements Runnable {
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new WebSocketServerInitializer(sslCtx));
 
-            Channel ch = b.bind(PORT).sync().channel();
+            ch = b.bind(PORT).sync().channel();
 
             System.out.println("Open your web browser and navigate to " +
                     (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
@@ -74,5 +79,10 @@ public final class WebSocketServer implements Runnable {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public void send(byte[] msg) {
+        WebSocketFrame frame = new BinaryWebSocketFrame(Unpooled.wrappedBuffer(msg));
+        ch.writeAndFlush(frame);
     }
 }

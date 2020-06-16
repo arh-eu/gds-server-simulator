@@ -13,6 +13,7 @@ import hu.arh.gds.message.util.ReadException;
 import hu.arh.gds.message.util.ValidationException;
 import hu.arh.gds.message.util.WriteException;
 import hu.gds.examples.simulator.responses.*;
+import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -21,7 +22,7 @@ public class GDSSimulator {
     public static boolean user_logged_in = false;
     private static final Logger LOGGER = Logger.getLogger("GDSSimulator");
 
-    public byte[] handleRequest(byte[] request) throws IOException, ValidationException, WriteException {
+    public Response handleRequest(byte[] request) throws IOException, ValidationException, WriteException {
 
         MessageHeaderBase requestHeader;
         try {
@@ -41,7 +42,7 @@ public class GDSSimulator {
 
         LOGGER.info("GDS has received a message of type '" + requestData.getTypeHelper().getMessageDataType().name() + "'..");
 
-        byte[] response;
+        Response response;
         switch (requestData.getTypeHelper().getMessageDataType()) {
             case CONNECTION_0:
                 response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.getTypeHelper().asConnectionMessageData0());
@@ -64,11 +65,11 @@ public class GDSSimulator {
                 LOGGER.info("Sending back the EVENT_DOCUMENT_ACK..");
                 break;
             case QUERY_REQUEST_10:
-                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader);
+                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader, true);
                 LOGGER.info("Sending back the QUERY_REQUEST_ACK..");
                 break;
             case NEXT_QUERY_PAGE_12:
-                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader);
+                response = ResponseGenerator.getQueryRequestAckMessage(requestHeader, false);
                 LOGGER.info("Sending back the QUERY_REQUEST_ACK..");
                 break;
             case ATTACHMENT_REQUEST_ACK_5:

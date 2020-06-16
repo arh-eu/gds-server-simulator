@@ -42,13 +42,34 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             byte[] request = new byte[frame.content().readableBytes()];
             frame.content().readBytes(request);
             try {
-                byte[] response = simulator.handleRequest(request);
 
+                /*
+                byte[] response = simulator.handleRequest(request);
                 if (response == null) {
                     return;
                 }
-
                 ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(response)));
+                */
+
+                Response response = simulator.handleRequest(request);
+                if(response == null) {
+                    return;
+                }
+
+                if(response.getBinaries().size() == 1) {
+                    byte[] binary = response.getBinaries().get(0);
+                    if(binary != null) {
+                        ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(binary)));
+                    }
+                } else {
+                    for (byte[] binary : response.getBinaries()) {
+                        if(binary != null) {
+                            ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(binary)));
+                        }
+                        Thread.sleep(response.getNextDelay());
+                    }
+                }
+
             } catch (Throwable t) {
                 throw new IllegalStateException(t);
             }
@@ -59,6 +80,4 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             throw new UnsupportedOperationException(message);
         }
     }
-
-
 }
