@@ -65,14 +65,14 @@ public class ResponseGenerator {
                                     add(requestHeader.getMessageId());
                                 }},
                                 "sample_owner_table",
-                                "attachemnt_id_1",
+                                "attachment_id_1",
                                 new ArrayList<String>() {{
                                     add("owner1");
                                 }},
                                 "image/bmp",
                                 60 * 60 * 1000L,
                                 60 * 60 * 1000L,
-                                AttachmentRequestACK.getPixel()),
+                                AttachmentRequestACK.getImagePixels()),
                         null);
                 binaries.add(MessageManager.createMessage(attachmentResponseHeader, attachmentResponseData));
             }

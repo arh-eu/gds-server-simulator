@@ -28,7 +28,7 @@ public class GDSSimulator {
         try {
             requestHeader = MessageManager.getMessageHeaderFromBinaryMessage(request).getTypeHelper().asBaseMessageHeader();
         } catch (ReadException | ValidationException e) {
-            LOGGER.warning("An error occured while processing the message header");
+            LOGGER.warning("An error occurred while processing the message header");
             throw new IllegalStateException(e.getMessage());
         }
 
@@ -36,7 +36,7 @@ public class GDSSimulator {
         try {
             requestData = MessageManager.getMessageData(request);
         } catch (ReadException | ValidationException e) {
-            LOGGER.warning("An error occured while processing the message data");
+            LOGGER.warning("An error occurred while processing the message data");
             throw new IllegalStateException(e.getMessage());
         }
 
