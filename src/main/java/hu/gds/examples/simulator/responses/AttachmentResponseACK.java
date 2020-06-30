@@ -15,6 +15,7 @@ import hu.arh.gds.message.util.ValidationException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
@@ -22,6 +23,15 @@ public class AttachmentResponseACK {
     public static MessageData7AttachmentResponseAck getData() throws IOException, ValidationException {
         MessageData7AttachmentResponseAck responseData;
         if(user_logged_in) {
+            String mimetype;
+            boolean sendBMP;
+            if( new Random().nextInt() % 2 == 1) {
+                mimetype = "image/bmp";
+                sendBMP = true;
+            }else{
+                mimetype = "image/png";
+                sendBMP = false;
+            }
             responseData = MessageManager.createMessageData7AttachmentResponseAck(
                     AckStatus.OK,
                     new AttachmentResponseAckResultHolderImpl(
@@ -31,10 +41,10 @@ public class AttachmentResponseACK {
                                     "sample_owner_table",
                                     "attachment_id_1",
                                     new ArrayList<String>(){{add("owner1");}},
-                                    "image/bmp",
+                                    mimetype,
                                     60 * 60 * 1000L,
                                     60 * 60 * 1000L,
-                                    AttachmentRequestACK.getImagePixels())),
+                                    AttachmentRequestACK.getImagePixels(sendBMP))),
                     null);
         } else {
             responseData = MessageManager.createMessageData7AttachmentResponseAck(

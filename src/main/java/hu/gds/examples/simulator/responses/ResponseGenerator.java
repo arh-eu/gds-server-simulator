@@ -59,6 +59,17 @@ public class ResponseGenerator {
         if(attachmentRequestAckData.getData() != null) {
             if(attachmentRequestAckData.getData().getResult().getAttachment() == null) {
                 MessageHeader attachmentResponseHeader = getHeader(requestHeader, MessageDataType.ATTACHMENT_RESPONSE_6);
+
+                String mimetype;
+                boolean sendBMP;
+                if( new Random().nextInt() % 2 != 0) {
+                    mimetype = "image/bmp";
+                    sendBMP = true;
+                }else{
+                    mimetype = "image/png";
+                    sendBMP = false;
+                }
+
                 MessageData6AttachmentResponse attachmentResponseData = MessageManager.createMessageData6AttachmentResponse(
                         new AttachmentResultHolderImpl(
                                 new ArrayList<String>(){{
@@ -69,10 +80,10 @@ public class ResponseGenerator {
                                 new ArrayList<String>() {{
                                     add("owner1");
                                 }},
-                                "image/bmp",
+                                mimetype,
                                 60 * 60 * 1000L,
                                 60 * 60 * 1000L,
-                                AttachmentRequestACK.getImagePixels()),
+                                AttachmentRequestACK.getImagePixels(sendBMP)),
                         null);
                 binaries.add(MessageManager.createMessage(attachmentResponseHeader, attachmentResponseData));
             }
