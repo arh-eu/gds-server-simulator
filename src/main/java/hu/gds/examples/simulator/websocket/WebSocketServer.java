@@ -42,7 +42,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 public final class WebSocketServer implements Runnable {
 
     private static final boolean SSL = System.getProperty("ssl") != null;
-    private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8080"));
+    private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8888"));
 
     private Channel ch;
 
