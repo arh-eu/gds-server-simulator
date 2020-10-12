@@ -2,7 +2,7 @@
 
 This example serves as very basic simulator for the GDS system.
 
-It is shipped as a `Java (maven)`  application - its dependencies are [netty (4.1.45)](https://github.com/netty/netty) and [gds-java-messages](https://github.com/arh-eu/gds-java-messages) (as specified in the `pom.xml` file).
+It is shipped as a `Java (maven)`  application - its dependencies are [netty (4.1.45)](https://github.com/netty/netty) and [gds-java-sdk](https://github.com/arh-eu/gds-java-sdk) (as specified in the `pom.xml` file).
  
  Please keep in mind that the server simulator will _not_ be implemented in other languages.
 

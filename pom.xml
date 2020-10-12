@@ -30,8 +30,8 @@
 
         <dependency>
             <groupId>com.github.arh-eu</groupId>
-            <artifactId>gds-java-messages</artifactId>
-            <version>master-SNAPSHOT</version>
+            <artifactId>gds-java-sdk</artifactId>
+            <version>LATEST</version>
         </dependency>
 
     </dependencies>
