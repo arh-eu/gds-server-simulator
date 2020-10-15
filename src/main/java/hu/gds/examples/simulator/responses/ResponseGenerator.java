@@ -1,19 +1,22 @@
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.*;
-import hu.arh.gds.message.data.impl.*;
+import hu.arh.gds.message.data.MessageData;
+import hu.arh.gds.message.data.MessageData0Connection;
+import hu.arh.gds.message.data.MessageData5AttachmentRequestAck;
+import hu.arh.gds.message.data.MessageData6AttachmentResponse;
+import hu.arh.gds.message.data.impl.AckStatus;
+import hu.arh.gds.message.data.impl.AttachmentResultHolderImpl;
 import hu.arh.gds.message.header.MessageDataType;
 import hu.arh.gds.message.header.MessageHeader;
 import hu.arh.gds.message.header.MessageHeaderBase;
 import hu.arh.gds.message.util.MessageManager;
 import hu.arh.gds.message.util.ValidationException;
-import hu.arh.gds.message.util.WriteException;
 import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
 import java.util.*;
 
-import static hu.gds.examples.simulator.GDSSimulator.*;
+import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class ResponseGenerator {
 
@@ -37,42 +40,42 @@ public class ResponseGenerator {
     }
 
     public static Response getConnectionAckMessage(MessageHeaderBase requestHeader, MessageData0Connection requestData)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         return new Response(
                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), ConnectionACK.getData(requestHeader, requestData)));
     }
 
     public static Response getEventAckMessage(MessageHeaderBase requestHeader)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         return new Response(
                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_ACK_3), EventACK.getData()));
     }
 
     public static Response getAttachmentRequestAckMessage(MessageHeaderBase requestHeader)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         boolean withAttachment = random.nextBoolean();
         MessageHeader attachmentRequestAckHeader = getHeader(requestHeader, MessageDataType.ATTACHMENT_REQUEST_ACK_5);
         MessageData5AttachmentRequestAck attachmentRequestAckData = AttachmentRequestACK.getData(withAttachment);
         byte[] attachmentRequestAckMessage = MessageManager.createMessage(attachmentRequestAckHeader, attachmentRequestAckData);
         List<byte[]> binaries = new ArrayList<>();
         binaries.add(attachmentRequestAckMessage);
-        if(attachmentRequestAckData.getData() != null) {
-            if(attachmentRequestAckData.getData().getResult().getAttachment() == null) {
+        if (attachmentRequestAckData.getData() != null) {
+            if (attachmentRequestAckData.getData().getResult().getAttachment() == null) {
                 MessageHeader attachmentResponseHeader = getHeader(requestHeader, MessageDataType.ATTACHMENT_RESPONSE_6);
 
                 String mimetype;
                 boolean sendBMP;
-                if( new Random().nextInt() % 2 != 0) {
+                if (new Random().nextInt() % 2 != 0) {
                     mimetype = "image/bmp";
                     sendBMP = true;
-                }else{
+                } else {
                     mimetype = "image/png";
                     sendBMP = false;
                 }
 
                 MessageData6AttachmentResponse attachmentResponseData = MessageManager.createMessageData6AttachmentResponse(
                         new AttachmentResultHolderImpl(
-                                new ArrayList<String>(){{
+                                new ArrayList<String>() {{
                                     add(requestHeader.getMessageId());
                                 }},
                                 "sample_owner_table",
@@ -92,35 +95,35 @@ public class ResponseGenerator {
     }
 
     public static Response getAttachmentResponseAckMessage(MessageHeaderBase requestHeader)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         return new Response(
                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.ATTACHMENT_RESPONSE_ACK_7), AttachmentResponseACK.getData()));
     }
 
     public static Response getEventDocumentAckMessage(MessageHeaderBase requestHeader)
-            throws IOException, ValidationException, WriteException {
-         return new Response(
-                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_DOCUMENT_ACK_9), EventDocumentACK.getData()));
+            throws IOException, ValidationException {
+        return new Response(
+                MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_DOCUMENT_ACK_9), EventDocumentACK.getData()));
     }
 
     public static Response getQueryRequestAckMessage(MessageHeaderBase requestHeader, boolean morePage)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         return new Response(
                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.QUERY_REQUEST_ACK_11), QueryACK.getData(morePage)));
     }
 
     public static Response getInvalidAckMessage(MessageHeaderBase requestHeader, MessageDataType dataType)
-            throws IOException, ValidationException, WriteException {
+            throws IOException, ValidationException {
         String exceptionMessage = "GDS cannot serve " + dataType.name() + " requests!";
         MessageData responseData;
         switch (dataType) {
             case CONNECTION_ACK_1:
-                if(user_logged_in) {
+                if (user_logged_in) {
                     responseData = MessageManager.createMessageData1ConnectionAck(
-                                    null,
-                                    null,
-                                    AckStatus.BAD_REQUEST,
-                                    exceptionMessage);
+                            null,
+                            null,
+                            AckStatus.BAD_REQUEST,
+                            exceptionMessage);
                 } else {
                     Map<Integer, String> errors;
                     errors = new HashMap<>();
@@ -134,7 +137,7 @@ public class ResponseGenerator {
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case EVENT_ACK_3:
-                if(user_logged_in) {
+                if (user_logged_in) {
                     responseData = MessageManager.createMessageData3EventAck(
                             null,
                             AckStatus.BAD_REQUEST,
@@ -148,7 +151,7 @@ public class ResponseGenerator {
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case EVENT_DOCUMENT_ACK_9:
-                if(user_logged_in) {
+                if (user_logged_in) {
                     responseData = MessageManager.createMessageMessageData9EventDocumentAck(
                             AckStatus.BAD_REQUEST,
                             null,
@@ -162,7 +165,7 @@ public class ResponseGenerator {
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case QUERY_REQUEST_ACK_11:
-                if(user_logged_in) {
+                if (user_logged_in) {
                     responseData = MessageManager.createMessageData11QueryRequestAck(
                             AckStatus.BAD_REQUEST,
                             null,

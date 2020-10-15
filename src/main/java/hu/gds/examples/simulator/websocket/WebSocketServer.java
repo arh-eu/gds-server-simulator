@@ -69,8 +69,8 @@ public final class WebSocketServer implements Runnable {
 
             ch = b.bind(PORT).sync().channel();
 
-            System.out.println("Open your web browser and navigate to " +
-                    (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+            System.out.println("To use the Simulator connect to this at the address " +
+                    (SSL ? "wss" : "ws") + "://127.0.0.1:" + PORT + "/gate");
 
             ch.closeFuture().sync();
         } catch (Throwable ignored) {

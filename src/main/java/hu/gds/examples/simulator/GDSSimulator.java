@@ -11,7 +11,6 @@ import hu.arh.gds.message.header.MessageHeaderBase;
 import hu.arh.gds.message.util.MessageManager;
 import hu.arh.gds.message.util.ReadException;
 import hu.arh.gds.message.util.ValidationException;
-import hu.arh.gds.message.util.WriteException;
 import hu.gds.examples.simulator.responses.*;
 import hu.gds.examples.simulator.websocket.Response;
 
@@ -22,7 +21,7 @@ public class GDSSimulator {
     public static boolean user_logged_in = false;
     private static final Logger LOGGER = Logger.getLogger("GDSSimulator");
 
-    public Response handleRequest(byte[] request) throws IOException, ValidationException, WriteException {
+    public Response handleRequest(byte[] request) throws IOException, ValidationException {
 
         MessageHeaderBase requestHeader;
         try {

@@ -26,8 +26,6 @@ import hu.gds.examples.simulator.GDSSimulator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
@@ -43,27 +41,19 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             frame.content().readBytes(request);
             try {
 
-                /*
-                byte[] response = simulator.handleRequest(request);
+                Response response = simulator.handleRequest(request);
                 if (response == null) {
                     return;
                 }
-                ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(response)));
-                */
 
-                Response response = simulator.handleRequest(request);
-                if(response == null) {
-                    return;
-                }
-
-                if(response.getBinaries().size() == 1) {
+                if (response.getBinaries().size() == 1) {
                     byte[] binary = response.getBinaries().get(0);
-                    if(binary != null) {
+                    if (binary != null) {
                         ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(binary)));
                     }
                 } else {
                     for (byte[] binary : response.getBinaries()) {
-                        if(binary != null) {
+                        if (binary != null) {
                             ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(binary)));
                         }
                         Thread.sleep(response.getNextDelay());
@@ -79,5 +69,11 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        //
+        ctx.close();
     }
 }

@@ -42,7 +42,7 @@ public class QueryACK {
             for (int i = 1; i <= 100; ++i) {
                 List<Value> valuesTemp = new ArrayList<>();
                 for (int j = 1; j <= 3; ++j) {
-                    valuesTemp.add(new ImmutableStringValueImpl("row_" + i + "_value_" + j));
+                    valuesTemp.add(new ImmutableStringValueImpl("ROW_" + i + "_value_" + j));
                 }
                 values.add(valuesTemp);
             }
