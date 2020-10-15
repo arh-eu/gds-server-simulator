@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.github.arh-eu</groupId>
             <artifactId>gds-java-sdk</artifactId>
-            <version>LATEST</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
