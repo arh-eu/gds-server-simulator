@@ -7,7 +7,7 @@ import java.util.Random;
 public class Response {
     private List<byte[]> binaries = new ArrayList<>();
     private int maxDelay = 5_000;
-    Random random = new Random();
+    private static Random random = new Random();
 
     public Response(List<byte[]> binaries, int maxDelay) {
         this.binaries = binaries;

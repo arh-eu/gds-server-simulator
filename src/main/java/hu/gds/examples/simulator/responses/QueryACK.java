@@ -25,7 +25,7 @@ import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class QueryACK {
 
-    public static MessageData11QueryRequestAck getData(boolean morePage) throws IOException, ValidationException {
+    public static MessageData11QueryRequestAck getData(boolean hasMorePage) throws IOException, ValidationException {
         MessageData11QueryRequestAck responseData;
         if (user_logged_in) {
             Random r = new Random();
@@ -42,7 +42,7 @@ public class QueryACK {
             for (int i = 1; i <= 100; ++i) {
                 List<Value> valuesTemp = new ArrayList<>();
                 for (int j = 1; j <= 3; ++j) {
-                    valuesTemp.add(new ImmutableStringValueImpl("ROW_" + i + "_value_" + j));
+                    valuesTemp.add(new ImmutableStringValueImpl("ROW_" + (hasMorePage ? i : i + 100) + "_value_" + j));
                 }
                 values.add(valuesTemp);
             }
@@ -52,7 +52,7 @@ public class QueryACK {
                     new QueryResponseHolderImpl(
                             100L,
                             10L,
-                            morePage,
+                            hasMorePage,
                             new QueryContextHolderImpl(
                                     "2b22a5a84966df20a3a44793476a55c45bc06418d964bc1d9009a6e859a1bf4e",
                                     "SELECT * FROM table",

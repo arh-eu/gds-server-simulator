@@ -112,6 +112,51 @@ public class ResponseGenerator {
                 MessageManager.createMessage(getHeader(requestHeader, MessageDataType.QUERY_REQUEST_ACK_11), QueryACK.getData(morePage)));
     }
 
+
+    public static Response getInvalidRequestMessage(MessageHeaderBase requestHeader, MessageDataType dataType)
+            throws IOException, ValidationException {
+        switch (dataType) {
+            case EVENT_2:
+                return new Response(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_ACK_3),
+                        MessageManager.createMessageData3EventAck(null, AckStatus.NOT_ACCEPTABLE_304,
+                                "This record was already inserted to the GDS.")));
+            case ATTACHMENT_REQUEST_4:
+                return new Response(
+                        MessageManager.createMessage(getHeader(requestHeader, MessageDataType.ATTACHMENT_REQUEST_ACK_5),
+                                MessageManager.createMessageData5AttachmentRequestAck(
+                                        AckStatus.UNAUTHORIZED,
+                                        null,
+                                        "User has no right to access this attachment.")));
+            case ATTACHMENT_RESPONSE_6:
+                return new Response(
+                        MessageManager.createMessage(getHeader(requestHeader, MessageDataType.ATTACHMENT_RESPONSE_ACK_7),
+                                MessageManager.createMessageData7AttachmentResponseAck(
+                                        AckStatus.GONE,
+                                        null,
+                                        "This attachment will not be stored as its time to live expired.")));
+            case EVENT_DOCUMENT_8:
+                return new Response(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_DOCUMENT_ACK_9),
+                        MessageManager.createMessageMessageData9EventDocumentAck(AckStatus.NOT_ACCEPTABLE_304, null,
+                                "This record was already inserted to the GDS.")));
+            case QUERY_REQUEST_10:
+                return new Response(
+                        MessageManager.createMessage(getHeader(requestHeader, MessageDataType.QUERY_REQUEST_ACK_11),
+                                MessageManager.createMessageData11QueryRequestAck(
+                                        AckStatus.PRECONDITION_FAILED,
+                                        null,
+                                        "The user has no SELECT right for the given table.")));
+            case NEXT_QUERY_PAGE_12:
+                return new Response(
+                        MessageManager.createMessage(getHeader(requestHeader, MessageDataType.QUERY_REQUEST_ACK_11),
+                                MessageManager.createMessageData11QueryRequestAck(
+                                        AckStatus.NOT_ACCEPTABLE_406,
+                                        null,
+                                        "The given query cannot be continued as there are no more records.")));
+            default:
+                return null;
+        }
+    }
+
     public static Response getInvalidAckMessage(MessageHeaderBase requestHeader, MessageDataType dataType)
             throws IOException, ValidationException {
         String exceptionMessage = "GDS cannot serve " + dataType.name() + " requests!";

@@ -32,8 +32,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
-    private final GDSSimulator simulator = new GDSSimulator();
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) {
         if (frame instanceof BinaryWebSocketFrame) {
@@ -41,7 +39,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             frame.content().readBytes(request);
             try {
 
-                Response response = simulator.handleRequest(request);
+                Response response = GDSSimulator.handleRequest(request);
                 if (response == null) {
                     return;
                 }

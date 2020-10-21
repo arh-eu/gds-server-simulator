@@ -7,21 +7,70 @@
 package hu.gds.examples.simulator;
 
 import hu.arh.gds.message.data.MessageData;
+import hu.arh.gds.message.header.MessageDataType;
 import hu.arh.gds.message.header.MessageHeaderBase;
 import hu.arh.gds.message.util.MessageManager;
 import hu.arh.gds.message.util.ReadException;
 import hu.arh.gds.message.util.ValidationException;
-import hu.gds.examples.simulator.responses.*;
+import hu.gds.examples.simulator.responses.ResponseGenerator;
 import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class GDSSimulator {
     public static boolean user_logged_in = false;
     private static final Logger LOGGER = Logger.getLogger("GDSSimulator");
 
-    public Response handleRequest(byte[] request) throws IOException, ValidationException {
+    static {
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter() {
+            private String format = "[%1$tF %1$tT] [%2$s] | %3$s::%4$s | %5$s %n";
+
+            @Override
+            public synchronized String format(LogRecord lr) {
+                return String.format(format,
+                        new Date(lr.getMillis()),
+                        lr.getLevel().getLocalizedName(),
+                        lr.getSourceClassName(),
+                        lr.getSourceMethodName(),
+                        lr.getMessage()
+                );
+            }
+        });
+
+        LOGGER.setUseParentHandlers(false);
+        LOGGER.addHandler(handler);
+    }
+
+    private static int errorPercentage = 0;
+    private static Random random = new Random(System.currentTimeMillis());
+
+    private static List<MessageDataType> failableRequests = Arrays.asList(
+            MessageDataType.EVENT_2,
+            MessageDataType.ATTACHMENT_REQUEST_4,
+            MessageDataType.ATTACHMENT_RESPONSE_6,
+            MessageDataType.EVENT_DOCUMENT_8,
+            MessageDataType.QUERY_REQUEST_10,
+            MessageDataType.NEXT_QUERY_PAGE_12
+    );
+
+    public static void setErrorPercentage(int value) {
+        if (value < 0 || value > 100) {
+            throw new IllegalArgumentException("The error percentage should be in the [0..100] range! Specified: " + value);
+        }
+        errorPercentage = value;
+        LOGGER.info("The GDS Simulator will have " + errorPercentage + "% chance to reply to your requests with an error message.");
+    }
+
+    public static Response handleRequest(byte[] request) throws IOException, ValidationException {
 
         MessageHeaderBase requestHeader;
         try {
@@ -39,10 +88,16 @@ public class GDSSimulator {
             throw new IllegalStateException(e.getMessage());
         }
 
-        LOGGER.info("GDS has received a message of type '" + requestData.getTypeHelper().getMessageDataType().name() + "'..");
+        MessageDataType messageDataType = requestData.getTypeHelper().getMessageDataType();
+        LOGGER.info("GDS has received a message of type '" + messageDataType.name() + "'..");
+
+        if (failableRequests.contains(messageDataType) && random.nextInt(100) < errorPercentage) {
+            LOGGER.info("Creating an automated response for an invalid request");
+            return ResponseGenerator.getInvalidRequestMessage(requestHeader, messageDataType);
+        }
 
         Response response;
-        switch (requestData.getTypeHelper().getMessageDataType()) {
+        switch (messageDataType) {
             case CONNECTION_0:
                 response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.getTypeHelper().asConnectionMessageData0());
                 LOGGER.info("Sending back the CONNECTION_ACK..");
@@ -75,7 +130,7 @@ public class GDSSimulator {
             case ATTACHMENT_RESPONSE_ACK_7:
                 return null;
             default:
-                response = ResponseGenerator.getInvalidAckMessage(requestHeader, requestData.getTypeHelper().getMessageDataType());
+                response = ResponseGenerator.getInvalidAckMessage(requestHeader, messageDataType);
                 break;
         }
         LOGGER.info("GDS Response successfully sent!");

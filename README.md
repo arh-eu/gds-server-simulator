@@ -2,10 +2,8 @@
 
 This example serves as very basic simulator for the GDS system.
 
-It is shipped as a `Java (maven)`  application - its dependencies are [netty (4.1.45)](https://github.com/netty/netty) and [gds-java-sdk](https://github.com/arh-eu/gds-java-sdk) (as specified in the `pom.xml` file).
+It is shipped as a `Java (maven)`  application - its dependencies are [Netty ](https://github.com/netty/netty)(`v4.1.49`) and the [Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v1.3`) for the GDS. 
  
- Please keep in mind that the server simulator will _not_ be implemented in other languages.
-
 ## How to build
 
 You require to build and run the simulator: 
@@ -43,7 +41,7 @@ This does not mean your requests are not checked at all - packages violating the
 
 First if all, keep in mind that if you try to send any request without a connection message first your request will be declined by an appropriate response message with `Error 401 - Unauthorized`.
 
-| What can you send? | What will you recieve? | Comments |
+| What can you send? | What will you receive? | Comments |
 | ------------------ | ---------------------- | -------- |
 | [Connection](https://github.com/arh-eu/gds/wiki/Connection) | [ConnectionACK](https://github.com/arh-eu/gds/wiki/Connection-ACK) | The username in the request must be `"user"`. Trying to connect with any other username will result in an error. |
 | [Event](https://github.com/arh-eu/gds/wiki/Event) | [EventACK](https://github.com/arh-eu/gds/wiki/Event-ACK) | Contents of the response are about two successful `INSERT` statements.  |
@@ -62,3 +60,18 @@ The following messages are ignored and the response will contain an `Error 400 -
   - [EventACK](https://github.com/arh-eu/gds/wiki/Event-ACK)
   - [EventDocumentACK](https://github.com/arh-eu/gds/wiki/Event-Document-ACK)
   - [QueryRequestACK](https://github.com/arh-eu/gds/wiki/Query-request-ACK)
+
+## ACKs containing error message 
+
+If you want to have the option the get messages with error codes, you can do this by adding the ` GDSSimulator.setErrorPercentage(..);` call to the `Main` class before instantiating the WebSocketServer. (Value should be between `0` and `100`, but the login ACK is not affected by this). This will make the GDS to have a chance to reply with an error to your requests. If the margin is met, instead of a successful message you'll get the followings: 
+
+By default, this is set to `10%`.
+
+| Message you send | Message you receive | Error code | Error message |
+|---|---|---|---|
+|Event | Event ACK | 304 | "This record was already inserted to the GDS."|
+ |Attachment Request | Attachment Request ACK | 401 | "User has no right to access this attachment." |
+ |Attachment Response | Attachment Response ACK |  410 | "This attachment will not be stored as its time to live expired."
+ | Event Document | Event Document ACK | 304 |  "This record was already inserted to the GDS." |
+ |Query Request | Query Request ACK | 412 | "The user has no SELECT right for the given table." |
+ Next Query Page Request | Query Request ACK |  406 | "The given query cannot be continued as there are no more records." |
