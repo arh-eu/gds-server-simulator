@@ -1,16 +1,13 @@
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.MessageData;
-import hu.arh.gds.message.data.MessageData0Connection;
-import hu.arh.gds.message.data.MessageData5AttachmentRequestAck;
-import hu.arh.gds.message.data.MessageData6AttachmentResponse;
-import hu.arh.gds.message.data.impl.AckStatus;
-import hu.arh.gds.message.data.impl.AttachmentResultHolderImpl;
-import hu.arh.gds.message.header.MessageDataType;
-import hu.arh.gds.message.header.MessageHeader;
-import hu.arh.gds.message.header.MessageHeaderBase;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.*;
+import hu.arheu.gds.message.data.impl.AckStatus;
+import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arheu.gds.message.header.MessageDataType;
+import hu.arheu.gds.message.header.MessageHeader;
+import hu.arheu.gds.message.header.MessageHeaderBase;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
@@ -41,8 +38,11 @@ public class ResponseGenerator {
 
     public static Response getConnectionAckMessage(MessageHeaderBase requestHeader, MessageData0Connection requestData)
             throws IOException, ValidationException {
+        MessageData1ConnectionAck data = ConnectionACK.getData(requestHeader, requestData);
+
+        System.err.println("SENDING: " + data);
         return new Response(
-                MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), ConnectionACK.getData(requestHeader, requestData)));
+                MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), data));
     }
 
     public static Response getEventAckMessage(MessageHeaderBase requestHeader)
@@ -136,7 +136,7 @@ public class ResponseGenerator {
                                         "This attachment will not be stored as its time to live expired.")));
             case EVENT_DOCUMENT_8:
                 return new Response(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.EVENT_DOCUMENT_ACK_9),
-                        MessageManager.createMessageMessageData9EventDocumentAck(AckStatus.NOT_ACCEPTABLE_304, null,
+                        MessageManager.createMessageData9EventDocumentAck(AckStatus.NOT_ACCEPTABLE_304, null,
                                 "This record was already inserted to the GDS.")));
             case QUERY_REQUEST_10:
                 return new Response(
@@ -197,12 +197,12 @@ public class ResponseGenerator {
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case EVENT_DOCUMENT_ACK_9:
                 if (user_logged_in) {
-                    responseData = MessageManager.createMessageMessageData9EventDocumentAck(
+                    responseData = MessageManager.createMessageData9EventDocumentAck(
                             AckStatus.BAD_REQUEST,
                             null,
                             exceptionMessage);
                 } else {
-                    responseData = MessageManager.createMessageMessageData9EventDocumentAck(
+                    responseData = MessageManager.createMessageData9EventDocumentAck(
                             AckStatus.UNAUTHORIZED,
                             null,
                             "This user does not exist or has not sent Connection request yet!");

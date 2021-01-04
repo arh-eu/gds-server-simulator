@@ -6,12 +6,12 @@
 
 package hu.gds.examples.simulator;
 
-import hu.arh.gds.message.data.MessageData;
-import hu.arh.gds.message.header.MessageDataType;
-import hu.arh.gds.message.header.MessageHeaderBase;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ReadException;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.MessageData;
+import hu.arheu.gds.message.header.MessageDataType;
+import hu.arheu.gds.message.header.MessageHeaderBase;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ReadException;
+import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.responses.ResponseGenerator;
 import hu.gds.examples.simulator.websocket.Response;
 
@@ -67,7 +67,11 @@ public class GDSSimulator {
             throw new IllegalArgumentException("The error percentage should be in the [0..100] range! Specified: " + value);
         }
         errorPercentage = value;
-        LOGGER.info("The GDS Simulator will have " + errorPercentage + "% chance to reply to your requests with an error message.");
+        if (errorPercentage > 0) {
+            LOGGER.info("The GDS Simulator will have " + errorPercentage + "% chance to reply to your requests with an error message.");
+        } else {
+            LOGGER.info("The GDS Simulator will always reply to your requests with success.");
+        }
     }
 
     public static Response handleRequest(byte[] request) throws IOException, ValidationException {

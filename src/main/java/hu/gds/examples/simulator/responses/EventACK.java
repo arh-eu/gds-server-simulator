@@ -6,13 +6,13 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.*;
-import hu.arh.gds.message.data.impl.AckStatus;
-import hu.arh.gds.message.data.impl.EventResultHolderImpl;
-import hu.arh.gds.message.data.impl.EventSubResultHolderImpl;
-import hu.arh.gds.message.data.impl.FieldHolderImpl;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.*;
+import hu.arheu.gds.message.data.impl.AckStatus;
+import hu.arheu.gds.message.data.impl.EventResultHolderImpl;
+import hu.arheu.gds.message.data.impl.EventSubResultHolderImpl;
+import hu.arheu.gds.message.data.impl.FieldHolderImpl;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ValidationException;
 
 import java.io.IOException;
 import java.util.ArrayList;

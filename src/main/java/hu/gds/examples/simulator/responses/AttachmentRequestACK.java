@@ -6,12 +6,12 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.MessageData5AttachmentRequestAck;
-import hu.arh.gds.message.data.impl.AckStatus;
-import hu.arh.gds.message.data.impl.AttachmentRequestAckDataHolderImpl;
-import hu.arh.gds.message.data.impl.AttachmentResultHolderImpl;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.MessageData5AttachmentRequestAck;
+import hu.arheu.gds.message.data.impl.AckStatus;
+import hu.arheu.gds.message.data.impl.AttachmentRequestAckDataHolderImpl;
+import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ValidationException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

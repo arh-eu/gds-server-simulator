@@ -6,12 +6,12 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.MessageData0Connection;
-import hu.arh.gds.message.data.MessageData1ConnectionAck;
-import hu.arh.gds.message.data.impl.AckStatus;
-import hu.arh.gds.message.header.MessageHeaderBase;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.MessageData0Connection;
+import hu.arheu.gds.message.data.MessageData1ConnectionAck;
+import hu.arheu.gds.message.data.impl.AckStatus;
+import hu.arheu.gds.message.header.MessageHeaderBase;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ValidationException;
 
 import java.io.IOException;
 import java.util.HashMap;

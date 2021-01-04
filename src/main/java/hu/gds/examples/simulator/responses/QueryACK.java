@@ -6,13 +6,13 @@
 
 package hu.gds.examples.simulator.responses;
 
-import hu.arh.gds.message.data.ConsistencyType;
-import hu.arh.gds.message.data.FieldHolder;
-import hu.arh.gds.message.data.FieldValueType;
-import hu.arh.gds.message.data.MessageData11QueryRequestAck;
-import hu.arh.gds.message.data.impl.*;
-import hu.arh.gds.message.util.MessageManager;
-import hu.arh.gds.message.util.ValidationException;
+import hu.arheu.gds.message.data.ConsistencyType;
+import hu.arheu.gds.message.data.FieldHolder;
+import hu.arheu.gds.message.data.FieldValueType;
+import hu.arheu.gds.message.data.MessageData11QueryRequestAck;
+import hu.arheu.gds.message.data.impl.*;
+import hu.arheu.gds.message.util.MessageManager;
+import hu.arheu.gds.message.util.ValidationException;
 import org.msgpack.value.Value;
 import org.msgpack.value.impl.ImmutableStringValueImpl;
 
