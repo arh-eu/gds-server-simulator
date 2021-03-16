@@ -38,7 +38,7 @@ public class EventACK {
                                 "EVNT202001290039071890",
                                 "sample_table",
                                 true,
-                                1L,
+                                "1",
                                 null));
                     }});
             EventResultHolder eventResultHolder2 = new EventResultHolderImpl(
@@ -54,7 +54,7 @@ public class EventACK {
                                 "ATID202001290039071890",
                                 "sample_table-@attachment",
                                 true,
-                                1L,
+                                "1",
                                 null));
                     }});
             eventResultHolders.add(eventResultHolder1);

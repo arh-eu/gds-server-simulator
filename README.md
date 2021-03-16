@@ -2,13 +2,13 @@
 
 This example serves as very basic simulator for the GDS system.
 
-It is shipped as a `Java (maven)`  application - its dependencies are [Netty ](https://github.com/netty/netty)(`v4.1.49`) and the [Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v1.3`) for the GDS. 
+It is shipped as a `Java (maven)`  application - its dependencies are [Netty](https://github.com/netty/netty) (`v4.1.49`) and the [Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v1.5`) for the GDS. 
  
 ## How to build
 
-You require to build and run the simulator: 
+To build and run the simulator you will need: 
 
-* [Oracle JDK 8](http://www.oracle.com/technetwork/java/), or newer
+* [Oracle JDK 8](http://www.oracle.com/technetwork/java/) or newer
 * [Apache Maven](http://maven.apache.org/)
 
 ## How to run
