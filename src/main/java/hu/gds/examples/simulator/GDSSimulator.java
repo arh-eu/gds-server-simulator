@@ -19,11 +19,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import static hu.gds.examples.simulator.RandomUtil.RANDOM;
+
 
 public class GDSSimulator {
     public static boolean user_logged_in = false;
@@ -51,9 +53,8 @@ public class GDSSimulator {
     }
 
     private static int errorPercentage = 0;
-    private static Random random = new Random(System.currentTimeMillis());
 
-    private static List<MessageDataType> failableRequests = Arrays.asList(
+    private static final List<MessageDataType> allowFailuresFor = Arrays.asList(
             MessageDataType.EVENT_2,
             MessageDataType.ATTACHMENT_REQUEST_4,
             MessageDataType.ATTACHMENT_RESPONSE_6,
@@ -95,7 +96,7 @@ public class GDSSimulator {
         MessageDataType messageDataType = requestData.getTypeHelper().getMessageDataType();
         LOGGER.info("GDS has received a message of type '" + messageDataType.name() + "'..");
 
-        if (failableRequests.contains(messageDataType) && random.nextInt(100) < errorPercentage) {
+        if (allowFailuresFor.contains(messageDataType) && RANDOM.nextInt(100) < errorPercentage) {
             LOGGER.info("Creating an automated response for an invalid request");
             return ResponseGenerator.getInvalidRequestMessage(requestHeader, messageDataType);
         }

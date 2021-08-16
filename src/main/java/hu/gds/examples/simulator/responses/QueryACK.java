@@ -8,18 +8,16 @@ package hu.gds.examples.simulator.responses;
 
 import hu.arheu.gds.message.data.ConsistencyType;
 import hu.arheu.gds.message.data.FieldHolder;
-import hu.arheu.gds.message.data.FieldValueType;
 import hu.arheu.gds.message.data.MessageData11QueryRequestAck;
 import hu.arheu.gds.message.data.impl.*;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.arheu.gds.message.util.ValidationException;
+import hu.gds.examples.simulator.fields.GDSFieldSet;
 import org.msgpack.value.Value;
-import org.msgpack.value.impl.ImmutableStringValueImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
@@ -28,21 +26,19 @@ public class QueryACK {
     public static MessageData11QueryRequestAck getData(boolean hasMorePage) throws IOException, ValidationException {
         MessageData11QueryRequestAck responseData;
         if (user_logged_in) {
-            Random r = new Random();
             List<FieldHolder> fieldHolders = new ArrayList<>();
-            for (int i = 1; i <= 3; ++i) {
+            for (GDSFieldSet field : GDSFieldSet.values()) {
                 fieldHolders.add(
-                        new FieldHolderImpl(
-                                "field_name_" + i,
-                                FieldValueType.valueOf(r.nextInt(15)),
-                                "mime_type_" + i));
+                        new FieldHolderImpl(field.getFieldName(),
+                                field.getType(),
+                                field.getMimeType())
+                );
             }
-
             List<List<Value>> values = new ArrayList<>();
-            for (int i = 1; i <= 100; ++i) {
+            for (int i = 1; i <= 300; ++i) {
                 List<Value> valuesTemp = new ArrayList<>();
-                for (int j = 1; j <= 3; ++j) {
-                    valuesTemp.add(new ImmutableStringValueImpl("ROW_" + (hasMorePage ? i : i + 100) + "_value_" + j));
+                for (GDSFieldSet field : GDSFieldSet.values()) {
+                    valuesTemp.add(field.generateValue());
                 }
                 values.add(valuesTemp);
             }

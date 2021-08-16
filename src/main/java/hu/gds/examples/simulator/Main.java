@@ -10,7 +10,7 @@ import hu.gds.examples.simulator.websocket.WebSocketServer;
 
 public class Main {
     public static void main(String[] args) {
-        GDSSimulator.setErrorPercentage(0);
+        GDSSimulator.setErrorPercentage(10);
         new WebSocketServer().run();
     }
 }

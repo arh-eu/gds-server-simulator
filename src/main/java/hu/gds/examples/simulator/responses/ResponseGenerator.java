@@ -8,18 +8,22 @@ import hu.arheu.gds.message.header.MessageHeader;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.arheu.gds.message.util.ValidationException;
+import hu.gds.examples.simulator.RandomUtil;
 import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
+import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class ResponseGenerator {
 
     private final static String allowed_user = "user";
 
-    private static final Random random = new Random();
 
     private static MessageHeaderBase getHeader(MessageHeaderBase requestHeader, MessageDataType dataType)
             throws IOException, ValidationException {
@@ -53,7 +57,7 @@ public class ResponseGenerator {
 
     public static Response getAttachmentRequestAckMessage(MessageHeaderBase requestHeader)
             throws IOException, ValidationException {
-        boolean withAttachment = random.nextBoolean();
+        boolean withAttachment = RANDOM.nextBoolean();
         MessageHeader attachmentRequestAckHeader = getHeader(requestHeader, MessageDataType.ATTACHMENT_REQUEST_ACK_5);
         MessageData5AttachmentRequestAck attachmentRequestAckData = AttachmentRequestACK.getData(withAttachment);
         byte[] attachmentRequestAckMessage = MessageManager.createMessage(attachmentRequestAckHeader, attachmentRequestAckData);
@@ -65,7 +69,7 @@ public class ResponseGenerator {
 
                 String mimetype;
                 boolean sendBMP;
-                if (new Random().nextInt() % 2 != 0) {
+                if (RANDOM.nextInt() % 2 != 0) {
                     mimetype = "image/bmp";
                     sendBMP = true;
                 } else {
@@ -86,7 +90,7 @@ public class ResponseGenerator {
                                 mimetype,
                                 60 * 60 * 1000L,
                                 60 * 60 * 1000L,
-                                AttachmentRequestACK.getImagePixels(sendBMP)),
+                                RandomUtil.getImagePixels(sendBMP)),
                         null);
                 binaries.add(MessageManager.createMessage(attachmentResponseHeader, attachmentResponseData));
             }

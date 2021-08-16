@@ -2,7 +2,7 @@
 
 This example serves as very basic simulator for the GDS system.
 
-It is shipped as a `Java (maven)`  application - its dependencies are [Netty](https://github.com/netty/netty) (`v4.1.49`) and the [Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v1.5`) for the GDS. 
+It is shipped as a `Java (maven)`  application - its dependencies are [Netty](https://github.com/netty/netty) (`v4.1.49.Final`) and the [Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v1.6.0`) for the GDS (and the [MessagePack](https://github.com/msgpack/msgpack-java) (`v0.9.0`) for the communication protocol/values). 
  
 ## How to build
 
@@ -35,6 +35,15 @@ Also, many details of your requests will be ignored - it is not the goal of this
 
 This does not mean your requests are not checked at all - packages violating the structures of the messages will be handled like invalid requests, meaning the response will contain description of these errors. 
 
+## How accurate is it?
+
+ &#x26A0; The fieldset used in the `SELECT` reply can differ for each instance based on the configuration and custom settings set by the system admin/operator. These are placeholder values and types that are the most common across installed GDS systems.
+
+The values used are of the right type, but their actual value and/or correct range might not be accurate (i.e. licence plates are random alpha-numeric strings without country-specific formats or letters).
+
+Null values are also supplied for things that might not be `null` in a live system but will be by default if not configured otherwise.
+
+The same way providing all available values on specific types cannot/will not be done for business reasons. 
 
 ## Which scenarios are covered then?
 

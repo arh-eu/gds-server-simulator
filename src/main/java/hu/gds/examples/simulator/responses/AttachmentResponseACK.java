@@ -12,23 +12,24 @@ import hu.arheu.gds.message.data.impl.AttachmentResponseAckResultHolderImpl;
 import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.arheu.gds.message.util.ValidationException;
+import hu.gds.examples.simulator.RandomUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
+import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class AttachmentResponseACK {
     public static MessageData7AttachmentResponseAck getData() throws IOException, ValidationException {
         MessageData7AttachmentResponseAck responseData;
-        if(user_logged_in) {
+        if (user_logged_in) {
             String mimetype;
             boolean sendBMP;
-            if( new Random().nextInt() % 2 == 1) {
+            if (RANDOM.nextInt() % 2 == 1) {
                 mimetype = "image/bmp";
                 sendBMP = true;
-            }else{
+            } else {
                 mimetype = "image/png";
                 sendBMP = false;
             }
@@ -37,14 +38,19 @@ public class AttachmentResponseACK {
                     new AttachmentResponseAckResultHolderImpl(
                             AckStatus.OK,
                             new AttachmentResultHolderImpl(
-                                    new ArrayList<String>(){{add("request_id_1");add("request_id_2");}},
+                                    new ArrayList<String>() {{
+                                        add("request_id_1");
+                                        add("request_id_2");
+                                    }},
                                     "sample_owner_table",
                                     "attachment_id_1",
-                                    new ArrayList<String>(){{add("owner1");}},
+                                    new ArrayList<String>() {{
+                                        add("owner1");
+                                    }},
                                     mimetype,
                                     60 * 60 * 1000L,
                                     60 * 60 * 1000L,
-                                    AttachmentRequestACK.getImagePixels(sendBMP))),
+                                    RandomUtil.getImagePixels(sendBMP))),
                     null);
         } else {
             responseData = MessageManager.createMessageData7AttachmentResponseAck(

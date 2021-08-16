@@ -2,12 +2,12 @@ package hu.gds.examples.simulator.websocket;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+
+import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class Response {
     private List<byte[]> binaries = new ArrayList<>();
     private int maxDelay = 5_000;
-    private static Random random = new Random();
 
     public Response(List<byte[]> binaries, int maxDelay) {
         this.binaries = binaries;
@@ -31,6 +31,6 @@ public class Response {
     }
 
     public int getNextDelay() {
-        return random.nextInt(maxDelay + 1);
+        return RANDOM.nextInt(maxDelay + 1);
     }
 }
