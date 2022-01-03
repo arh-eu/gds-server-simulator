@@ -10,17 +10,16 @@ import hu.arheu.gds.message.data.EventDocumentResultHolder;
 import hu.arheu.gds.message.data.MessageData9EventDocumentAck;
 import hu.arheu.gds.message.data.impl.AckStatus;
 import hu.arheu.gds.message.data.impl.EventDocumentResultHolderImpl;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class EventDocumentACK {
-    public static MessageData9EventDocumentAck getData() throws IOException, ValidationException {
+    public static MessageData9EventDocumentAck getData() throws ValidationException {
         MessageData9EventDocumentAck responseData;
         if (user_logged_in) {
             responseData = MessageManager.createMessageData9EventDocumentAck(

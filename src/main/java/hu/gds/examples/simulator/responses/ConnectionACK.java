@@ -9,11 +9,10 @@ package hu.gds.examples.simulator.responses;
 import hu.arheu.gds.message.data.MessageData0Connection;
 import hu.arheu.gds.message.data.MessageData1ConnectionAck;
 import hu.arheu.gds.message.data.impl.AckStatus;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,7 +23,7 @@ public class ConnectionACK {
 
     private final static String allowed_user = "user";
 
-    public static MessageData1ConnectionAck getData(MessageHeaderBase requestHeader, MessageData0Connection requestData) throws IOException, ValidationException {
+    public static MessageData1ConnectionAck getData(MessageHeaderBase requestHeader, MessageData0Connection requestData) throws ValidationException {
         MessageData1ConnectionAck responseData;
         if (Objects.equals(allowed_user, requestHeader.getUserName())) {
             responseData = MessageManager.createMessageData1ConnectionAck(

@@ -6,12 +6,11 @@
 
 package hu.gds.examples.simulator;
 
+import hu.arheu.gds.message.FullGdsMessage;
 import hu.arheu.gds.message.data.MessageData;
-import hu.arheu.gds.message.header.MessageDataType;
+import hu.arheu.gds.message.data.MessageDataType;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeaderBase;
-import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ReadException;
-import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.responses.ResponseGenerator;
 import hu.gds.examples.simulator.websocket.Response;
 
@@ -34,10 +33,10 @@ public class GDSSimulator {
     static {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter() {
-            private String format = "[%1$tF %1$tT] [%2$s] | %3$s::%4$s | %5$s %n";
 
             @Override
             public synchronized String format(LogRecord lr) {
+                String format = "[%1$tF %1$tT] [%2$s] | %3$s::%4$s | %5$s %n";
                 return String.format(format,
                         new Date(lr.getMillis()),
                         lr.getLevel().getLocalizedName(),
@@ -71,29 +70,17 @@ public class GDSSimulator {
         if (errorPercentage > 0) {
             LOGGER.info("The GDS Simulator will have " + errorPercentage + "% chance to reply to your requests with an error message.");
         } else {
-            LOGGER.info("The GDS Simulator will always reply to your requests with success.");
+            LOGGER.info("The GDS Simulator will always reply to your requests with success (if it is a valid GDS message).");
         }
     }
 
     public static Response handleRequest(byte[] request) throws IOException, ValidationException {
 
-        MessageHeaderBase requestHeader;
-        try {
-            requestHeader = MessageManager.getMessageHeaderFromBinaryMessage(request).getTypeHelper().asBaseMessageHeader();
-        } catch (ReadException | ValidationException e) {
-            LOGGER.warning("An error occurred while processing the message header");
-            throw new IllegalStateException(e.getMessage());
-        }
+        FullGdsMessage fullGdsMessage = new FullGdsMessage(request);
+        MessageHeaderBase requestHeader = fullGdsMessage.getHeader();
+        MessageData requestData = fullGdsMessage.getData();
 
-        MessageData requestData;
-        try {
-            requestData = MessageManager.getMessageData(request);
-        } catch (ReadException | ValidationException e) {
-            LOGGER.warning("An error occurred while processing the message data");
-            throw new IllegalStateException(e.getMessage());
-        }
-
-        MessageDataType messageDataType = requestData.getTypeHelper().getMessageDataType();
+        MessageDataType messageDataType = requestData.getMessageDataType();
         LOGGER.info("GDS has received a message of type '" + messageDataType.name() + "'..");
 
         if (allowFailuresFor.contains(messageDataType) && RANDOM.nextInt(100) < errorPercentage) {
@@ -104,7 +91,7 @@ public class GDSSimulator {
         Response response;
         switch (messageDataType) {
             case CONNECTION_0:
-                response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.getTypeHelper().asConnectionMessageData0());
+                response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.asConnectionMessageData0());
                 LOGGER.info("Sending back the CONNECTION_ACK..");
                 break;
             case EVENT_2:

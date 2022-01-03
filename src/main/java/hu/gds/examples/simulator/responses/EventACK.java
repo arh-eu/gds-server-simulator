@@ -11,17 +11,16 @@ import hu.arheu.gds.message.data.impl.AckStatus;
 import hu.arheu.gds.message.data.impl.EventResultHolderImpl;
 import hu.arheu.gds.message.data.impl.EventSubResultHolderImpl;
 import hu.arheu.gds.message.data.impl.FieldHolderImpl;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class EventACK {
-    public static MessageData3EventAck getData() throws IOException, ValidationException {
+    public static MessageData3EventAck getData() throws ValidationException {
         MessageData3EventAck responseData;
         if (user_logged_in) {
             List<EventResultHolder> eventResultHolders = new ArrayList<>();

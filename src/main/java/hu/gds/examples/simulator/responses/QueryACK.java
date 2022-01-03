@@ -10,12 +10,11 @@ import hu.arheu.gds.message.data.ConsistencyType;
 import hu.arheu.gds.message.data.FieldHolder;
 import hu.arheu.gds.message.data.MessageData11QueryRequestAck;
 import hu.arheu.gds.message.data.impl.*;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.fields.GDSFieldSet;
 import org.msgpack.value.Value;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,7 @@ import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 
 public class QueryACK {
 
-    public static MessageData11QueryRequestAck getData(boolean hasMorePage) throws IOException, ValidationException {
+    public static MessageData11QueryRequestAck getData(boolean hasMorePage) throws ValidationException {
         MessageData11QueryRequestAck responseData;
         if (user_logged_in) {
             List<FieldHolder> fieldHolders = new ArrayList<>();

@@ -3,11 +3,10 @@ package hu.gds.examples.simulator.responses;
 import hu.arheu.gds.message.data.*;
 import hu.arheu.gds.message.data.impl.AckStatus;
 import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
-import hu.arheu.gds.message.header.MessageDataType;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeader;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.RandomUtil;
 import hu.gds.examples.simulator.websocket.Response;
 
@@ -22,11 +21,8 @@ import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class ResponseGenerator {
 
-    private final static String allowed_user = "user";
-
-
     private static MessageHeaderBase getHeader(MessageHeaderBase requestHeader, MessageDataType dataType)
-            throws IOException, ValidationException {
+            throws ValidationException {
         return MessageManager.createMessageHeaderBase(
                 requestHeader.getUserName(),
                 requestHeader.getMessageId(),

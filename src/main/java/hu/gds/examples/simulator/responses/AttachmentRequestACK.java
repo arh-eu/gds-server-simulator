@@ -10,8 +10,8 @@ import hu.arheu.gds.message.data.MessageData5AttachmentRequestAck;
 import hu.arheu.gds.message.data.impl.AckStatus;
 import hu.arheu.gds.message.data.impl.AttachmentRequestAckDataHolderImpl;
 import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
-import hu.arheu.gds.message.util.ValidationException;
 import hu.gds.examples.simulator.RandomUtil;
 
 import java.io.IOException;
