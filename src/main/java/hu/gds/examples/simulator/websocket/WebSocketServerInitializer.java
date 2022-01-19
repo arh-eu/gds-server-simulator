@@ -1,6 +1,6 @@
 /*
- * Intellectual property of ARH Inc.
- * This file belongs to the GDS 5.0 system in the gdsserversimulator project.
+ * Intellectual property of Adaptive Recognition.
+ * This file belongs to the GDS 5 system in the GDS Simulator project.
  * Budapest, 2020/01/27
  */
 
@@ -45,7 +45,7 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
     }
 
     @Override
-    public void initChannel(SocketChannel ch) throws Exception {
+    public void initChannel(SocketChannel ch) {
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));

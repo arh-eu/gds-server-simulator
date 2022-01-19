@@ -1,6 +1,6 @@
 /*
- * Intellectual property of ARH Inc.
- * This file belongs to the GDS 5.0 system in the gdsserversimulator project.
+ * Intellectual property of Adaptive Recognition.
+ * This file belongs to the GDS 5 system in the GDS Simulator project.
  * Budapest, 2020/01/27
  */
 
@@ -24,11 +24,15 @@ package hu.gds.examples.simulator.websocket;
 
 import hu.gds.examples.simulator.GDSSimulator;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+
+import java.nio.channels.AlreadyConnectedException;
+import java.nio.channels.NotYetConnectedException;
 
 public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
@@ -39,7 +43,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             frame.content().readBytes(request);
             try {
 
-                Response response = GDSSimulator.handleRequest(request);
+                Response response = GDSSimulator.handleRequest(ctx.channel().id().asLongText(), request);
                 if (response == null) {
                     return;
                 }
@@ -58,11 +62,16 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
                     }
                 }
 
+                if (response.shouldCloseConnection()) {
+                    closeConnection(ctx);
+                }
+            } catch (AlreadyConnectedException | NotYetConnectedException exc) {
+                closeConnection(ctx);
             } catch (Throwable t) {
                 throw new IllegalStateException(t);
             }
         } else if (frame instanceof CloseWebSocketFrame) {
-            ctx.channel().close();
+            closeConnection(ctx);
         } else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);
@@ -70,8 +79,19 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        closeConnection(ctx);
+    }
+
+    private void closeConnection(ChannelHandlerContext ctx) {
+        String uuid = ctx.channel().id().asLongText();
+        GDSSimulator.connectionClosed(uuid);
+        ctx.channel().writeAndFlush(new CloseWebSocketFrame()).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        //
-        ctx.close();
+        cause.printStackTrace();
+        closeConnection(ctx);
     }
 }

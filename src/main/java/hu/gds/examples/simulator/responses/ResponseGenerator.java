@@ -7,16 +7,16 @@ import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeader;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.arheu.gds.message.util.MessageManager;
+import hu.gds.examples.simulator.GDSSimulator;
 import hu.gds.examples.simulator.RandomUtil;
 import hu.gds.examples.simulator.websocket.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import static hu.gds.examples.simulator.GDSSimulator.user_logged_in;
 import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class ResponseGenerator {
@@ -36,13 +36,19 @@ public class ResponseGenerator {
                 dataType);
     }
 
-    public static Response getConnectionAckMessage(MessageHeaderBase requestHeader, MessageData0Connection requestData)
+    public static Response getConnectionAckMessage(String uuid, MessageHeaderBase requestHeader, MessageData0Connection requestData)
             throws IOException, ValidationException {
         MessageData1ConnectionAck data = ConnectionACK.getData(requestHeader, requestData);
 
+        boolean close = true;
+        if (data.getGlobalStatus() == AckStatus.OK) {
+            GDSSimulator.setLoggedIn(uuid, requestHeader.getUserName());
+            close = false;
+        }
+
         System.err.println("SENDING: " + data);
         return new Response(
-                MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), data));
+                Collections.singletonList(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), data)), close);
     }
 
     public static Response getEventAckMessage(MessageHeaderBase requestHeader)
@@ -65,6 +71,8 @@ public class ResponseGenerator {
 
                 String mimetype;
                 boolean sendBMP;
+                long ttl_toValid = 60 * 60 * 1000L;
+
                 if (RANDOM.nextInt() % 2 != 0) {
                     mimetype = "image/bmp";
                     sendBMP = true;
@@ -75,17 +83,13 @@ public class ResponseGenerator {
 
                 MessageData6AttachmentResponse attachmentResponseData = MessageManager.createMessageData6AttachmentResponse(
                         new AttachmentResultHolderImpl(
-                                new ArrayList<String>() {{
-                                    add(requestHeader.getMessageId());
-                                }},
+                                Arrays.asList("request_id_1", "request_id_2"),
                                 "sample_owner_table",
                                 "attachment_id_1",
-                                new ArrayList<String>() {{
-                                    add("owner1");
-                                }},
+                                Collections.singletonList("owner1"),
                                 mimetype,
-                                60 * 60 * 1000L,
-                                60 * 60 * 1000L,
+                                ttl_toValid,
+                                ttl_toValid,
                                 RandomUtil.getImagePixels(sendBMP)),
                         null);
                 binaries.add(MessageManager.createMessage(attachmentResponseHeader, attachmentResponseData));
@@ -162,65 +166,25 @@ public class ResponseGenerator {
         String exceptionMessage = "GDS cannot serve " + dataType.name() + " requests!";
         MessageData responseData;
         switch (dataType) {
-            case CONNECTION_ACK_1:
-                if (user_logged_in) {
-                    responseData = MessageManager.createMessageData1ConnectionAck(
-                            null,
-                            null,
-                            AckStatus.BAD_REQUEST,
-                            exceptionMessage);
-                } else {
-                    Map<Integer, String> errors;
-                    errors = new HashMap<>();
-                    errors.put(0, "There is no user named '" + requestHeader.getUserName() + "'!");
-                    responseData = MessageManager.createMessageData1ConnectionAck(
-                            null,
-                            errors,
-                            AckStatus.UNAUTHORIZED,
-                            "This user is not allowed!");
-                }
-                return new Response(
-                        MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case EVENT_ACK_3:
-                if (user_logged_in) {
-                    responseData = MessageManager.createMessageData3EventAck(
-                            null,
-                            AckStatus.BAD_REQUEST,
-                            exceptionMessage);
-                } else {
-                    responseData = MessageManager.createMessageData3EventAck(
-                            null,
-                            AckStatus.UNAUTHORIZED,
-                            "This user does not exist or has not sent Connection request yet!");
-                }
+                responseData = MessageManager.createMessageData3EventAck(
+                        null,
+                        AckStatus.BAD_REQUEST,
+                        exceptionMessage);
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case EVENT_DOCUMENT_ACK_9:
-                if (user_logged_in) {
-                    responseData = MessageManager.createMessageData9EventDocumentAck(
-                            AckStatus.BAD_REQUEST,
-                            null,
-                            exceptionMessage);
-                } else {
-                    responseData = MessageManager.createMessageData9EventDocumentAck(
-                            AckStatus.UNAUTHORIZED,
-                            null,
-                            "This user does not exist or has not sent Connection request yet!");
-                }
+                responseData = MessageManager.createMessageData9EventDocumentAck(
+                        AckStatus.BAD_REQUEST,
+                        null,
+                        exceptionMessage);
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case QUERY_REQUEST_ACK_11:
-                if (user_logged_in) {
-                    responseData = MessageManager.createMessageData11QueryRequestAck(
-                            AckStatus.BAD_REQUEST,
-                            null,
-                            exceptionMessage);
-                } else {
-                    responseData = MessageManager.createMessageData11QueryRequestAck(
-                            AckStatus.UNAUTHORIZED,
-                            null,
-                            "This user does not exist or has not sent Connection request yet!");
-                }
+                responseData = MessageManager.createMessageData11QueryRequestAck(
+                        AckStatus.BAD_REQUEST,
+                        null,
+                        exceptionMessage);
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             default:

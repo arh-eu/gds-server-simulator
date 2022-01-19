@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-public class RandomUtil {
+public final class RandomUtil {
     private RandomUtil() {
     }
 
@@ -43,25 +43,25 @@ public class RandomUtil {
     }
 
     public static Integer randomColor() {
-        return (randomInt(255) << 16) | (randomInt(255) << 8) | randomInt(255);
+        return (randomInt(256) << 16) | (randomInt(256) << 8) | randomInt(256);
     }
 
-    public static String randomAlphaNumericString(int maxLength) {
-        return RANDOM.ints(48, 122)
-                .filter(i -> (i < 57 || i > 65) && (i < 90 || i > 97))
+    public static String randomAlphaNumericString(int minLength, int maxLength) {
+        return RANDOM.ints(48, 123)
                 .mapToObj(i -> (char) i)
-                .limit(randomInt(maxLength) + 1)
+                .filter(Character::isLetterOrDigit)
+                .limit(randomInt(minLength, maxLength + 1))
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString()
                 .toUpperCase();
     }
 
     public static String randomPlate() {
-        return randomAlphaNumericString(8);
+        return randomAlphaNumericString(6, 8);
     }
 
     public static String randomEventID() {
-        return randomAlphaNumericString(25);
+        return randomAlphaNumericString(20, 25);
     }
 
     public static <T> T randomValue(Collection<T> collection) {
@@ -74,10 +74,8 @@ public class RandomUtil {
 
     public static final String configDependent = "{this value depends on the system settings, is not pre-defined}";
 
-
     //9x9 BMP image
     private final static int[] bmpPixels = {
-            // Offset 0x00000000 to 0x00000305
             0x42, 0x4d, 0x32, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00,
             0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x09, 0x00,
             0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfc, 0x00,
@@ -108,7 +106,6 @@ public class RandomUtil {
 
     //9x9 PNG image
     private final static int[] pngPixels = {
-            // Offset 0x00000000 to 0x00000151
             0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
             0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x09,
             0x08, 0x06, 0x00, 0x00, 0x00, 0xe0, 0x91, 0x06, 0x10, 0x00, 0x00, 0x00,
@@ -124,14 +121,30 @@ public class RandomUtil {
             0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
     };
 
+    private static byte[] bmpBytes;
+    private static byte[] pngBytes;
 
-    public static byte[] getImagePixels(boolean sendBMP) throws IOException {
-        int[] binaryData = sendBMP ? bmpPixels : pngPixels;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        for (int pixel : binaryData) {
-            dos.writeByte(pixel);
+    static {
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(byteStream);
+            for (int pixel : bmpPixels) {
+                dos.writeByte(pixel);
+            }
+            bmpBytes = byteStream.toByteArray();
+
+            byteStream.reset();
+            for (int pixel : pngPixels) {
+                dos.writeByte(pixel);
+            }
+            pngBytes = byteStream.toByteArray();
+
+        } catch (IOException ignored) {
+            //this should never happen.
         }
-        return baos.toByteArray();
+    }
+
+    public static byte[] getImagePixels(boolean sendBMP) {
+        return sendBMP ? bmpBytes : pngBytes;
     }
 }

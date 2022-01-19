@@ -6,19 +6,30 @@ import java.util.List;
 import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class Response {
-    private List<byte[]> binaries = new ArrayList<>();
-    private int maxDelay = 5_000;
-
-    public Response(List<byte[]> binaries, int maxDelay) {
-        this.binaries = binaries;
-        this.maxDelay = maxDelay;
-    }
+    private final List<byte[]> binaries;
+    private final int maxDelay;
+    private final boolean closeConnection;
 
     public Response(List<byte[]> binaries) {
+        this(binaries, 5000);
+    }
+
+    public Response(List<byte[]> binaries, int maxDelay) {
+        this(binaries, maxDelay, false);
+    }
+
+    public Response(List<byte[]> binaries, boolean closeConnection) {
+        this(binaries, 5000, closeConnection);
+    }
+
+    public Response(List<byte[]> binaries, int maxDelay, boolean closeConnection) {
         this.binaries = binaries;
+        this.maxDelay = maxDelay;
+        this.closeConnection = closeConnection;
     }
 
     public Response(byte[] binary) {
+        this(new ArrayList<>());
         this.binaries.add(binary);
     }
 
@@ -26,8 +37,8 @@ public class Response {
         return binaries;
     }
 
-    public int getMaxDelay() {
-        return maxDelay;
+    public boolean shouldCloseConnection() {
+        return closeConnection;
     }
 
     public int getNextDelay() {

@@ -1,6 +1,6 @@
 /*
- * Intellectual property of ARH Inc.
- * This file belongs to the GDS 5.0 system in the gdsserversimulator project.
+ * Intellectual property of Adaptive Recognition.
+ * This file belongs to the GDS 5 system in the GDS Simulator project.
  * Budapest, 2020/01/27
  */
 
@@ -23,13 +23,10 @@
 package hu.gds.examples.simulator.websocket;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
@@ -37,20 +34,25 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 /**
- * An HTTP server which serves Web Socket requests at: http://localhost:8080/websocket
+ * An HTTP server which serves GDS's WebSocket requests at: http://localhost:{8443|8888}/gate
  */
-public final class WebSocketServer implements Runnable {
+public final class WebSocketServer implements Runnable, AutoCloseable {
 
     private static final boolean SSL = System.getProperty("ssl") != null;
     private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8888"));
-
+    private final EventLoopGroup bossGroup;
+    private final EventLoopGroup workerGroup;
     private Channel ch;
+    private volatile boolean isRunning;
+
+
+    public WebSocketServer() {
+        bossGroup = new NioEventLoopGroup(1);
+        workerGroup = new NioEventLoopGroup();
+    }
 
     @Override
     public void run() {
-
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             // Configure SSL.
             final SslContext sslCtx;
@@ -71,18 +73,25 @@ public final class WebSocketServer implements Runnable {
 
             System.out.println("To use the Simulator connect to this at the address " +
                     (SSL ? "wss" : "ws") + "://127.0.0.1:" + PORT + "/gate");
-
+            isRunning = true;
             ch.closeFuture().sync();
-        } catch (Throwable ignored) {
-
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+        } catch (Throwable reason) {
+            throw new RuntimeException(reason);
         }
     }
 
-    public void send(byte[] msg) {
-        WebSocketFrame frame = new BinaryWebSocketFrame(Unpooled.wrappedBuffer(msg));
-        ch.writeAndFlush(frame);
+    @Override
+    public void close() {
+        if (isRunning) {
+            isRunning = false;
+            try {
+                bossGroup.shutdownGracefully().sync();
+                workerGroup.shutdownGracefully().sync();
+                ch.closeFuture().sync();
+                System.err.println("WebSocket server stopped.");
+            } catch (Throwable cause) {
+                throw new RuntimeException(cause);
+            }
+        }
     }
 }

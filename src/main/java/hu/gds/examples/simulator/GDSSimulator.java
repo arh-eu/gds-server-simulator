@@ -1,6 +1,6 @@
 /*
- * Intellectual property of ARH Inc.
- * This file belongs to the GDS 5.0 system in the gds-server-simulator project.
+ * Intellectual property of Adaptive Recognition.
+ * This file belongs to the GDS 5 system in the gds-server-simulator project.
  * Budapest, 2020/01/27
  */
 
@@ -14,10 +14,12 @@ import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.gds.examples.simulator.responses.ResponseGenerator;
 import hu.gds.examples.simulator.websocket.Response;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.nio.channels.AlreadyConnectedException;
+import java.nio.channels.NotYetConnectedException;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -27,31 +29,7 @@ import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 
 public class GDSSimulator {
-    public static boolean user_logged_in = false;
     private static final Logger LOGGER = Logger.getLogger("GDSSimulator");
-
-    static {
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new SimpleFormatter() {
-
-            @Override
-            public synchronized String format(LogRecord lr) {
-                String format = "[%1$tF %1$tT] [%2$s] | %3$s::%4$s | %5$s %n";
-                return String.format(format,
-                        new Date(lr.getMillis()),
-                        lr.getLevel().getLocalizedName(),
-                        lr.getSourceClassName(),
-                        lr.getSourceMethodName(),
-                        lr.getMessage()
-                );
-            }
-        });
-
-        LOGGER.setUseParentHandlers(false);
-        LOGGER.addHandler(handler);
-    }
-
-    private static int errorPercentage = 0;
 
     private static final List<MessageDataType> allowFailuresFor = Arrays.asList(
             MessageDataType.EVENT_2,
@@ -74,7 +52,7 @@ public class GDSSimulator {
         }
     }
 
-    public static Response handleRequest(byte[] request) throws IOException, ValidationException {
+    public static Response handleRequest(String uuid, byte[] request) throws IOException, ValidationException {
 
         FullGdsMessage fullGdsMessage = new FullGdsMessage(request);
         MessageHeaderBase requestHeader = fullGdsMessage.getHeader();
@@ -82,6 +60,16 @@ public class GDSSimulator {
 
         MessageDataType messageDataType = requestData.getMessageDataType();
         LOGGER.info("GDS has received a message of type '" + messageDataType.name() + "'..");
+
+        //this WebSocket connection does not have an active session alive (no login prior to this message on this connection)
+        if (messageDataType != MessageDataType.CONNECTION_0 && !hasLoggedIn(requestHeader.getUserName())) {
+            throw new NotYetConnectedException();
+        }
+
+        //this WebSocket connection already has an active session alive.
+        if (messageDataType == MessageDataType.CONNECTION_0 && hasConnection(uuid)) {
+            throw new AlreadyConnectedException();
+        }
 
         if (allowFailuresFor.contains(messageDataType) && RANDOM.nextInt(100) < errorPercentage) {
             LOGGER.info("Creating an automated response for an invalid request");
@@ -91,7 +79,7 @@ public class GDSSimulator {
         Response response;
         switch (messageDataType) {
             case CONNECTION_0:
-                response = ResponseGenerator.getConnectionAckMessage(requestHeader, requestData.asConnectionMessageData0());
+                response = ResponseGenerator.getConnectionAckMessage(uuid, requestHeader, requestData.asConnectionMessageData0());
                 LOGGER.info("Sending back the CONNECTION_ACK..");
                 break;
             case EVENT_2:
@@ -127,5 +115,81 @@ public class GDSSimulator {
         }
         LOGGER.info("GDS Response successfully sent!");
         return response;
+    }
+
+    private static final Properties SETTINGS = new Properties();
+
+    private static final Set<String> REGISTERED_USERS = new HashSet<>();
+
+    private static int errorPercentage;
+
+    static {
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter() {
+
+            @Override
+            public synchronized String format(LogRecord lr) {
+                String format = "[%1$tF %1$tT] [%2$s] | %3$s::%4$s | %5$s %n";
+                return String.format(format, new Date(lr.getMillis()), lr.getLevel().getLocalizedName(), lr.getSourceClassName(), lr.getSourceMethodName(), lr.getMessage());
+            }
+        });
+
+        LOGGER.setUseParentHandlers(false);
+        LOGGER.addHandler(handler);
+
+        REGISTERED_USERS.add("user");
+
+        try {
+            SETTINGS.load(new FileInputStream("settings.properties"));
+
+            Arrays.asList(SETTINGS.getProperty("users", "").split(", ")).forEach(GDSSimulator::addUser);
+            setErrorPercentage(Integer.parseInt(SETTINGS.getProperty("error_percentage", "10")));
+
+        } catch (FileNotFoundException e) {
+            System.err.println("'settings.properties' file not found, using default values..");
+            setErrorPercentage(10);
+        } catch (Throwable throwable) {
+            System.err.println("Invalid 'settings.properties' file. Please fix it before running the simulator!\nReason: " + throwable);
+            System.exit(1);
+        }
+        System.err.println("GDS Simulator initialized!");
+    }
+
+
+    public static boolean hasUser(String user) {
+        return REGISTERED_USERS.contains(user);
+    }
+
+    public static void addUser(String user) {
+        REGISTERED_USERS.add(user);
+    }
+
+    public static void removeUser(String user) {
+        REGISTERED_USERS.remove(user);
+    }
+
+    public static Set<String> getRegisteredUsers() {
+        return new HashSet<>(REGISTERED_USERS);
+    }
+
+    // connection UUID -> username
+    private final static Map<String, String> logins = new HashMap<>();
+
+    public static boolean hasConnection(String uuid) {
+        return logins.containsKey(uuid);
+    }
+
+    public static boolean hasLoggedIn(String user) {
+        return logins.containsValue(user);
+    }
+
+    public static void setLoggedIn(String uuid, String user) {
+        logins.put(uuid, user);
+        System.err.println("Connection towards " + uuid + " has been established.");
+    }
+
+    public static void connectionClosed(String uuid) {
+        logins.remove(uuid);
+        System.err.println("Connection towards " + uuid + " has been closed.");
     }
 }
