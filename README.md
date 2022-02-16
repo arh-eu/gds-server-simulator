@@ -2,7 +2,7 @@
 
 This example serves as very basic simulator for the GDS system.
 
-It is shipped as a `Java (maven)` application - its dependency is the [GDS Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v2.2.0`) for the GDS (which transitively includes our other two main dependencies, namely [Netty](https://github.com/netty/netty) (`v4.1.73.Final`) and the [MessagePack](https://github.com/msgpack/msgpack-java) (`v0.9.0`) implementation). 
+It is shipped as a `Java (maven)` application - its dependency is the [GDS Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v2.2.1`) for the GDS (which transitively includes our other two main dependencies, namely [Netty](https://github.com/netty/netty) (`v4.1.73.Final`) and the [MessagePack](https://github.com/msgpack/msgpack-java) (`v0.9.0`) implementation). 
  
 ## How to build
 
@@ -14,7 +14,7 @@ To build and run the simulator you will need:
 ## How to run
 
 The entry point of the application is in the `hu.gds.examples.simulator.Main` class. You can either open the project in your IDE to run it or 
-you can compile it and run it via the `java -jar gds-server-simulator-2.1.0-jar-with-dependencies.jar` command from the terminal.
+you can compile it and run it via the `java -jar gds-server-simulator-2.1.1-jar-with-dependencies.jar` command from the terminal.
 
 ## What can it do?
 

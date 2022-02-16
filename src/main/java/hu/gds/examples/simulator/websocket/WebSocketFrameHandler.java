@@ -27,9 +27,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.*;
 
 import java.nio.channels.AlreadyConnectedException;
 import java.nio.channels.NotYetConnectedException;
@@ -72,6 +70,8 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             }
         } else if (frame instanceof CloseWebSocketFrame) {
             closeConnection(ctx);
+        } else if (frame instanceof PingWebSocketFrame) {
+            ctx.channel().writeAndFlush(new PongWebSocketFrame());
         } else {
             String message = "unsupported frame type: " + frame.getClass().getName();
             throw new UnsupportedOperationException(message);
