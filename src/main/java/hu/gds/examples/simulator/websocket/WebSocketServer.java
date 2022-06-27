@@ -34,7 +34,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 /**
- * An HTTP server which serves GDS's WebSocket requests at: http://localhost:{8443|8888}/gate
+ * An HTTP server which serves GDS's WebSocket requests at: {@linkplain "http://localhost:{8443|8888}/gate"}
  */
 public final class WebSocketServer implements Runnable, AutoCloseable {
 

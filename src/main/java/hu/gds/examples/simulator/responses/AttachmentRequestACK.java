@@ -14,7 +14,6 @@ import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.gds.examples.simulator.RandomUtil;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -22,7 +21,7 @@ import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class AttachmentRequestACK {
 
-    public static MessageData5AttachmentRequestAck getData(boolean withAttachment) throws IOException, ValidationException {
+    public static MessageData5AttachmentRequestAck getData(boolean withAttachment) throws ValidationException {
         String mimetype = null;
         Long ttl_toValid = null;
         boolean sendBMP = false;

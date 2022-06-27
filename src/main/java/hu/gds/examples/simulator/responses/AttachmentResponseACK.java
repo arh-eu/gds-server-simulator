@@ -14,14 +14,13 @@ import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.gds.examples.simulator.RandomUtil;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class AttachmentResponseACK {
-    public static MessageData7AttachmentResponseAck getData() throws IOException, ValidationException {
+    public static MessageData7AttachmentResponseAck getData() throws ValidationException {
         long ttl_toValid = 60 * 60 * 1000L;
         String mimetype;
         boolean sendBMP = false;
