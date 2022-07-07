@@ -22,6 +22,7 @@
  */
 package hu.gds.examples.simulator.websocket;
 
+import hu.gds.examples.simulator.GDSSimulator;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -39,7 +40,6 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 public final class WebSocketServer implements Runnable, AutoCloseable {
 
     private static final boolean SSL = System.getProperty("ssl") != null;
-    private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8888"));
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private Channel ch;
@@ -69,10 +69,10 @@ public final class WebSocketServer implements Runnable, AutoCloseable {
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new WebSocketServerInitializer(sslCtx));
 
-            ch = b.bind(PORT).sync().channel();
+            ch = b.bind(GDSSimulator.PORT).sync().channel();
 
             System.out.println("To use the Simulator connect to this at the address " +
-                    (SSL ? "wss" : "ws") + "://127.0.0.1:" + PORT + "/gate");
+                    (SSL ? "wss" : "ws") + "://127.0.0.1:" + GDSSimulator.PORT + "/gate");
             isRunning = true;
             ch.closeFuture().sync();
         } catch (Throwable reason) {

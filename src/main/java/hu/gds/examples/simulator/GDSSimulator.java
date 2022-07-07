@@ -13,6 +13,7 @@ import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.gds.examples.simulator.responses.ResponseGenerator;
 import hu.gds.examples.simulator.websocket.Response;
+import io.netty.channel.ChannelHandlerContext;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -52,7 +53,7 @@ public class GDSSimulator {
         }
     }
 
-    public static Response handleRequest(String uuid, byte[] request) throws IOException, ValidationException {
+    public static Response handleRequest(ChannelHandlerContext ctx, String uuid, byte[] request) throws IOException, ValidationException {
 
         FullGdsMessage fullGdsMessage = new FullGdsMessage(request);
         MessageHeaderBase requestHeader = fullGdsMessage.getHeader();
@@ -79,7 +80,7 @@ public class GDSSimulator {
         Response response;
         switch (messageDataType) {
             case CONNECTION_0:
-                response = ResponseGenerator.getConnectionAckMessage(uuid, requestHeader, requestData.asConnectionMessageData0());
+                response = ResponseGenerator.getConnectionAckMessage(ctx, uuid, requestHeader, requestData.asConnectionMessageData0());
                 LOGGER.info("Sending back the CONNECTION_ACK..");
                 break;
             case EVENT_2:
@@ -108,6 +109,7 @@ public class GDSSimulator {
                 break;
             case ATTACHMENT_REQUEST_ACK_5:
             case ATTACHMENT_RESPONSE_ACK_7:
+            case EVENT_DOCUMENT_ACK_9:
                 return null;
             default:
                 response = ResponseGenerator.getInvalidAckMessage(requestHeader, messageDataType);
@@ -120,7 +122,9 @@ public class GDSSimulator {
     private static final Properties SETTINGS = new Properties();
 
     private static final Set<String> REGISTERED_USERS = new HashSet<>();
-
+    private static final Set<String> EVENT_USERS = new HashSet<>();
+    public static int PORT = 8888;
+    public static int PUSH_INTERVAL_MILLIS;
     private static int errorPercentage;
 
     static {
@@ -144,6 +148,9 @@ public class GDSSimulator {
 
             Arrays.asList(SETTINGS.getProperty("users", "").split(", ")).forEach(GDSSimulator::addUser);
             setErrorPercentage(Integer.parseInt(SETTINGS.getProperty("error_percentage", "10")));
+            PORT = Integer.parseInt(SETTINGS.getProperty("port", "8888"));
+            Arrays.asList(SETTINGS.getProperty("send_push_messages_to", "").split(", ")).forEach(GDSSimulator::addEventUser);
+            PUSH_INTERVAL_MILLIS = Integer.parseInt(SETTINGS.getProperty("push_message_interval", "10000"));
 
         } catch (FileNotFoundException e) {
             System.err.println("'settings.properties' file not found, using default values..");
@@ -163,6 +170,18 @@ public class GDSSimulator {
     public static void addUser(String user) {
         REGISTERED_USERS.add(user);
     }
+
+    public static void addEventUser(String user) {
+        if (!hasUser(user)) {
+            throw new IllegalStateException("The user named %1$s is not registered!".formatted(user));
+        }
+        EVENT_USERS.add(user);
+    }
+
+    public static boolean hasEventUser(String user) {
+        return EVENT_USERS.contains(user);
+    }
+
 
     public static void removeUser(String user) {
         REGISTERED_USERS.remove(user);
@@ -190,6 +209,7 @@ public class GDSSimulator {
 
     public static void connectionClosed(String uuid) {
         logins.remove(uuid);
+        ResponseGenerator.stopEventPushing(uuid);
         System.err.println("Connection towards " + uuid + " has been closed.");
     }
 }

@@ -3,23 +3,30 @@ package hu.gds.examples.simulator.responses;
 import hu.arheu.gds.message.data.*;
 import hu.arheu.gds.message.data.impl.AckStatus;
 import hu.arheu.gds.message.data.impl.AttachmentResultHolderImpl;
+import hu.arheu.gds.message.data.impl.FieldHolderImpl;
 import hu.arheu.gds.message.errors.ValidationException;
 import hu.arheu.gds.message.header.MessageHeader;
 import hu.arheu.gds.message.header.MessageHeaderBase;
 import hu.arheu.gds.message.util.MessageManager;
 import hu.gds.examples.simulator.GDSSimulator;
 import hu.gds.examples.simulator.RandomUtil;
+import hu.gds.examples.simulator.fields.GDSFieldSet;
 import hu.gds.examples.simulator.websocket.Response;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import org.msgpack.value.Value;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static hu.gds.examples.simulator.RandomUtil.RANDOM;
 
 public class ResponseGenerator {
+
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
+    private static final Map<String, ScheduledFuture<?>> pushTasks = new ConcurrentHashMap<>();
 
     private static MessageHeaderBase getHeader(MessageHeaderBase requestHeader, MessageDataType dataType)
             throws ValidationException {
@@ -36,19 +43,29 @@ public class ResponseGenerator {
                 dataType);
     }
 
-    public static Response getConnectionAckMessage(String uuid, MessageHeaderBase requestHeader, MessageData0Connection requestData)
+    public static Response getConnectionAckMessage(ChannelHandlerContext ctx, String uuid, MessageHeaderBase requestHeader, MessageData0Connection requestData)
             throws IOException, ValidationException {
         MessageData1ConnectionAck data = ConnectionACK.getData(requestHeader, requestData);
 
-        boolean close = true;
+        boolean closeConnection = true;
         if (data.getGlobalStatus() == AckStatus.OK) {
             GDSSimulator.setLoggedIn(uuid, requestHeader.getUserName());
-            close = false;
+            closeConnection = false;
+            if (requestData.getServeOnTheSameConnection() != null
+                    && !requestData.getServeOnTheSameConnection()
+                    && GDSSimulator.hasEventUser(requestHeader.getUserName())
+            ) {
+                pushTasks.put(uuid, executor.scheduleAtFixedRate(() -> sendPushMessage(ctx, requestHeader.getUserName()),
+                        GDSSimulator.PUSH_INTERVAL_MILLIS,
+                        GDSSimulator.PUSH_INTERVAL_MILLIS,
+                        TimeUnit.MILLISECONDS
+                ));
+            }
         }
 
         System.err.println("SENDING: " + data);
         return new Response(
-                Collections.singletonList(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), data)), close);
+                Collections.singletonList(MessageManager.createMessage(getHeader(requestHeader, MessageDataType.CONNECTION_ACK_1), data)), closeConnection);
     }
 
     public static Response getEventAckMessage(MessageHeaderBase requestHeader)
@@ -173,13 +190,6 @@ public class ResponseGenerator {
                         exceptionMessage);
                 return new Response(
                         MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
-            case EVENT_DOCUMENT_ACK_9:
-                responseData = MessageManager.createMessageData9EventDocumentAck(
-                        AckStatus.BAD_REQUEST,
-                        null,
-                        exceptionMessage);
-                return new Response(
-                        MessageManager.createMessage(getHeader(requestHeader, dataType), responseData));
             case QUERY_REQUEST_ACK_11:
                 responseData = MessageManager.createMessageData11QueryRequestAck(
                         AckStatus.BAD_REQUEST,
@@ -191,6 +201,55 @@ public class ResponseGenerator {
                 //unreachable
                 return null;
 
+        }
+    }
+
+    private static void sendPushMessage(ChannelHandlerContext ctx, String userName) {
+
+        List<FieldHolder> fieldHolders = new ArrayList<>();
+        List<List<Value>> values = new ArrayList<>();
+
+        for (GDSFieldSet field : GDSFieldSet.values()) {
+            fieldHolders.add(
+                    new FieldHolderImpl(field.getFieldName(),
+                            field.getType(),
+                            field.getMimeType())
+            );
+        }
+
+        for (int i = 1; i <= 3; ++i) {
+            List<Value> valuesTemp = new ArrayList<>();
+            for (GDSFieldSet field : GDSFieldSet.values()) {
+                valuesTemp.add(field.generateValue());
+            }
+            values.add(valuesTemp);
+        }
+
+        try {
+            byte[] binary =
+                    MessageManager.createMessage(
+                            MessageManager.createMessageHeaderBase(
+                                    userName,
+                                    MessageDataType.EVENT_DOCUMENT_8
+                            ),
+                            MessageManager.createMessageData8EventDocument(
+                                    "sample_owner_table",
+                                    fieldHolders,
+                                    values
+                            ));
+
+            System.err.println("Sending automated PUSH event to user " + userName + "..");
+            ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(binary)));
+
+        } catch (IOException ignored) {
+
+        }
+    }
+
+    public static void stopEventPushing(String uuid) {
+        ScheduledFuture<?> removed = pushTasks.remove(uuid);
+        if (removed != null) {
+            removed.cancel(false);
         }
     }
 }

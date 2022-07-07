@@ -41,7 +41,7 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             frame.content().readBytes(request);
             try {
 
-                Response response = GDSSimulator.handleRequest(ctx.channel().id().asLongText(), request);
+                Response response = GDSSimulator.handleRequest(ctx, ctx.channel().id().asLongText(), request);
                 if (response == null) {
                     return;
                 }
