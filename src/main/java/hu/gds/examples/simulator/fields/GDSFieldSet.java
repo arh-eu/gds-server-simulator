@@ -5,6 +5,7 @@ import org.msgpack.value.Value;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static hu.gds.examples.simulator.RandomUtil.*;
@@ -43,7 +44,7 @@ public enum GDSFieldSet {
     DESCRIPTION("description", "\"type\":\"long-text\"", FieldValueType.TEXT),
     DETECTOR("detector", "\"type\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject("ANPR DETECTOR")),
     DEVICE("device", "\"type\":\"source-type\"", FieldValueType.KEYWORD),
-
+    DEVICE_SPEED("device_speed", "\"type:\":\"device_speed\",\"suffix\":\"km/h\"", FieldValueType.INTEGER, () -> FieldValueType.INTEGER.valueFromObject(randomInt(0, 200))),
     DIRECTION("direction", "", FieldValueType.INTEGER, () -> FieldValueType.INTEGER.valueFromObject(1)),
     ENTRY_DEVICE_ID("entry_device_id", "\"type\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject("ANPR DETECTOR 01")),
     ENTRY_DEVICE_NAME("entry_device_name", "\"type\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject("ANPR DETECTOR")),
@@ -53,6 +54,8 @@ public enum GDSFieldSet {
     EXTRA_IMAGE("extra_image", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
     FRONT_CUT_IMAGE("front_cut_image", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
     FRONT_PLATE_IMAGE("front_plate_image", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
+    GEO_SHAPE("geo_shape", "\"type\":\"text\"", FieldValueType.GEO_SHAPE, ()->FieldValueType.GEO_SHAPE.valueFromObject("POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))")),
+    GEO_POINT("geo_point", "\"type\":\"text\"", FieldValueType.GEO_POINT, ()->FieldValueType.GEO_POINT.valueFromObject("POINT(47.4927435 19.0231955)")),
     HEIGHT("height", "\"type\":\"double\",\"suffix\":\"m\"", FieldValueType.DOUBLE, () -> FieldValueType.DOUBLE.valueFromObject(randomDouble(1.2d, 2.5d))),
     ID("id", "\"type\":\"event-id\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject(randomEventID())),
     IMAGES("images", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
@@ -70,7 +73,6 @@ public enum GDSFieldSet {
     MMR_MODEL("mmr_model", "\"type\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject("TT")),
     MMR_MODEL_CONFIDENCE("mmr_model_confidence", "\"type\":\"integer\",\"suffix\":\"%\"", FieldValueType.INTEGER, () -> FieldValueType.INTEGER.valueFromObject(randomInt(100))),
     MMR_SUBMODEL("mmr_submodel", "\"type\":\"text\"", FieldValueType.KEYWORD, nullSupplier),
-
     NATIONALITY("nationality", "\"type\":\"front-nationality\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject(randomValue(nationalities))),
     OVERVIEW_IMAGE("overview_image", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
     OVERVIEW_PLATE_IMAGE("overview_plate_image", "\"type\":\"attachment\",\"attachmentType\":\"image/jpeg\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
@@ -86,8 +88,10 @@ public enum GDSFieldSet {
     REAR_STATE_LONG("rear_state_long", "", FieldValueType.KEYWORD),
     REAR_STATE_SHORT("rear_state_short", "", FieldValueType.KEYWORD),
     REASON("reason", "\"type:\":\"text-array\"", FieldValueType.KEYWORD_ARRAY, nullSupplier),
+    RELATION_ID("relation_id", "\"type:\":\"text\"", FieldValueType.KEYWORD, nullSupplier),
     SOURCE("source", "\"type:\":\"source\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject("Budapest, Alkotás")),
     SPEED("speed", "\"type:\":\"speed\",\"suffix\":\"km/h\"", FieldValueType.INTEGER, () -> FieldValueType.INTEGER.valueFromObject(randomInt(20, 200))),
+    SPEED_LIMIT_RATIO("speed_limit_ratio", "\"type:\":double\"", FieldValueType.DOUBLE, () -> FieldValueType.DOUBLE.valueFromObject(randomDouble(0, 5))),
     STATE_LONG("state_long", "", FieldValueType.KEYWORD),
     STATE_SHORT("state_short", "", FieldValueType.KEYWORD),
     STORE_TIMESTAMP("store_timestamp", "\"type:\":\"datetime\"", FieldValueType.LONG, () -> {
@@ -109,6 +113,7 @@ public enum GDSFieldSet {
     }),
     TOLERANCE("tolerance", "\"type:\":\"double\",\"suffix\":\"m\"", FieldValueType.DOUBLE, () -> FieldValueType.DOUBLE.valueFromObject(randomDouble(0.042d))),
     TYPE("type", "\"type:\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject(configDependent)),
+    VEHICLE_TYPE("vehicle_type", "\"type:\":\"text\"", FieldValueType.KEYWORD, () -> FieldValueType.KEYWORD.valueFromObject(randomValue(List.of("LIGHT", "HEAVY", "UNKNOWN")))),
     VIDEO("video", "\"type\":\"attachment\",\"attachmentType\":\"video/mp4\"", FieldValueType.KEYWORD_ARRAY, () -> FieldValueType.KEYWORD_ARRAY.valueFromObject(Arrays.asList(randomEventID(), randomEventID()))),
     WIDTH("width", "\"type\":\"double\",\"suffix\":\"m\"", FieldValueType.DOUBLE, () -> FieldValueType.DOUBLE.valueFromObject(randomDouble(1.2d, 1.9d)));
 
