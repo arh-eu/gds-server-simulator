@@ -3,9 +3,9 @@
 This example serves as very basic simulator for the GDS system.
 
 It is shipped as a `Java (maven)` application - its dependency is
-the [GDS Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v3.0.0`) for the GDS (which transitively includes our other
-two main dependencies, namely [Netty](https://github.com/netty/netty) (`v4.1.77.Final`) and
-the [MessagePack](https://github.com/msgpack/msgpack-java) (`v0.9.1`) implementation).
+the [GDS Java SDK](https://github.com/arh-eu/gds-java-sdk) (`v3.1.1`) for the GDS (which transitively includes our other
+two main dependencies, namely [Netty](https://github.com/netty/netty) (`v4.1.84.Final`) and
+the [MessagePack](https://github.com/msgpack/msgpack-java) (`v0.9.3`) implementation).
 
 ## How to build
 

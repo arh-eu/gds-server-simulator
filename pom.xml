@@ -6,7 +6,7 @@
 
     <groupId>hu.gds.examples</groupId>
     <artifactId>gds-server-simulator</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.github.arh-eu</groupId>
             <artifactId>gds-java-sdk</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.1</version>
         </dependency>
     </dependencies>
 
